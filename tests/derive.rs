@@ -1,8 +1,8 @@
 //! This module exercises the `ff_derive` procedural macros, to ensure that changes to the
 //! `ff` crate are reflected in `ff_derive`.
 
-use core::ops::{AddAssign, MulAssign, SubAssign};
-use ff::{Field, PrimeField};
+#[macro_use]
+extern crate ff;
 
 /// The BLS12-381 scalar field.
 #[derive(PrimeField)]
