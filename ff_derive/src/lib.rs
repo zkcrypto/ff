@@ -903,6 +903,37 @@ fn prime_field_impl(
             }
         }
 
+        impl<'a> ::std::ops::AddAssign<&'a #name> for #name {
+            #[inline]
+            fn add_assign(&mut self, other: &#name) {
+                // This cannot exceed the backing capacity.
+                self.0.add_nocarry(&other.0);
+
+                // However, it may need to be reduced.
+                self.reduce();
+            }
+        }
+
+        impl<'a> ::std::ops::SubAssign<&'a #name> for #name {
+            #[inline]
+            fn sub_assign(&mut self, other: &#name) {
+                // If `other` is larger than `self`, we'll need to add the modulus to self first.
+                if other.0 > self.0 {
+                    self.0.add_nocarry(&MODULUS);
+                }
+
+                self.0.sub_noborrow(&other.0);
+            }
+        }
+
+        impl<'a> ::std::ops::MulAssign<&'a #name> for #name {
+            #[inline]
+            fn mul_assign(&mut self, other: &#name)
+            {
+                #multiply_impl
+            }
+        }
+
         impl ::ff::Field for #name {
             #[inline]
             fn zero() -> Self {
@@ -920,31 +951,12 @@ fn prime_field_impl(
             }
 
             #[inline]
-            fn add_assign(&mut self, other: &#name) {
-                // This cannot exceed the backing capacity.
-                self.0.add_nocarry(&other.0);
-
-                // However, it may need to be reduced.
-                self.reduce();
-            }
-
-            #[inline]
             fn double(&mut self) {
                 // This cannot exceed the backing capacity.
                 self.0.mul2();
 
                 // However, it may need to be reduced.
                 self.reduce();
-            }
-
-            #[inline]
-            fn sub_assign(&mut self, other: &#name) {
-                // If `other` is larger than `self`, we'll need to add the modulus to self first.
-                if other.0 > self.0 {
-                    self.0.add_nocarry(&MODULUS);
-                }
-
-                self.0.sub_noborrow(&other.0);
             }
 
             #[inline]
@@ -1014,12 +1026,6 @@ fn prime_field_impl(
             #[inline(always)]
             fn frobenius_map(&mut self, _: usize) {
                 // This has no effect in a prime field.
-            }
-
-            #[inline]
-            fn mul_assign(&mut self, other: &#name)
-            {
-                #multiply_impl
             }
 
             #[inline]

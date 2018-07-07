@@ -13,10 +13,20 @@ pub use ff_derive::*;
 use std::error::Error;
 use std::fmt;
 use std::io::{self, Read, Write};
+use std::ops::{AddAssign, MulAssign, SubAssign};
 
 /// This trait represents an element of a field.
-pub trait Field:
-    Sized + Eq + Copy + Clone + Send + Sync + fmt::Debug + fmt::Display + 'static + rand::Rand
+pub trait Field
+where
+    for<'a> Self: AddAssign<&'a Self>,
+    for<'a> Self: SubAssign<&'a Self>,
+    for<'a> Self: MulAssign<&'a Self>,
+    Self: Sized + Eq,
+    Self: Copy + Clone,
+    Self: Send + Sync,
+    Self: fmt::Debug + fmt::Display,
+    Self: 'static,
+    Self: rand::Rand,
 {
     /// Returns the zero element of the field, the additive identity.
     fn zero() -> Self;
@@ -35,15 +45,6 @@ pub trait Field:
 
     /// Negates this element.
     fn negate(&mut self);
-
-    /// Adds another element to this element.
-    fn add_assign(&mut self, other: &Self);
-
-    /// Subtracts another element from this element.
-    fn sub_assign(&mut self, other: &Self);
-
-    /// Multiplies another element by this element.
-    fn mul_assign(&mut self, other: &Self);
 
     /// Computes the multiplicative inverse of this element, if nonzero.
     fn inverse(&self) -> Option<Self>;
