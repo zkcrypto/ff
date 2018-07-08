@@ -13,7 +13,7 @@ pub use ff_derive::*;
 use std::error::Error;
 use std::fmt;
 use std::io::{self, Read, Write};
-use std::ops::{AddAssign, MulAssign, SubAssign};
+use std::ops::{AddAssign, MulAssign, ShlAssign, ShrAssign, SubAssign};
 
 /// This trait represents an element of a field.
 pub trait Field
@@ -89,22 +89,18 @@ pub trait SqrtField: Field {
 /// This trait represents a wrapper around a biginteger which can encode any element of a particular
 /// prime field. It is a smart wrapper around a sequence of `u64` limbs, least-significant digit
 /// first.
-pub trait PrimeFieldRepr:
-    Sized
-    + Copy
-    + Clone
-    + Eq
-    + Ord
-    + Send
-    + Sync
-    + Default
-    + fmt::Debug
-    + fmt::Display
-    + 'static
-    + rand::Rand
-    + AsRef<[u64]>
-    + AsMut<[u64]>
-    + From<u64>
+pub trait PrimeFieldRepr
+where
+    Self: ShlAssign<u32> + ShrAssign<u32>,
+    Self: Sized,
+    Self: Copy + Clone,
+    Self: Eq + Ord,
+    Self: Send + Sync,
+    Self: Default,
+    Self: fmt::Debug + fmt::Display,
+    Self: 'static,
+    Self: rand::Rand,
+    Self: AsRef<[u64]> + AsMut<[u64]> + From<u64>,
 {
     /// Subtract another represetation from this one.
     fn sub_noborrow(&mut self, other: &Self);
@@ -129,15 +125,9 @@ pub trait PrimeFieldRepr:
     /// it by 2.
     fn div2(&mut self);
 
-    /// Performs a rightwise bitshift of this number by some amount.
-    fn shr(&mut self, amt: u32);
-
     /// Performs a leftwise bitshift of this number, effectively multiplying
     /// it by 2. Overflow is ignored.
     fn mul2(&mut self);
-
-    /// Performs a leftwise bitshift of this number by some amount.
-    fn shl(&mut self, amt: u32);
 
     /// Writes this `PrimeFieldRepr` as a big endian integer.
     fn write_be<W: Write>(&self, mut writer: W) -> io::Result<()> {

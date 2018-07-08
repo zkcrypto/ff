@@ -201,24 +201,37 @@ fn prime_field_repr_impl(repr: &syn::Ident, limbs: usize) -> proc_macro2::TokenS
             }
         }
 
-        impl ::ff::PrimeFieldRepr for #repr {
+        impl ::std::ops::ShlAssign<u32> for #repr {
             #[inline(always)]
-            fn is_odd(&self) -> bool {
-                self.0[0] & 1 == 1
-            }
+            fn shl_assign(&mut self, mut n: u32) {
+                if n as usize >= 64 * #limbs {
+                    *self = Self::from(0);
+                    return;
+                }
 
-            #[inline(always)]
-            fn is_even(&self) -> bool {
-                !self.is_odd()
-            }
+                while n >= 64 {
+                    let mut t = 0;
+                    for i in &mut self.0 {
+                        ::std::mem::swap(&mut t, i);
+                    }
+                    n -= 64;
+                }
 
-            #[inline(always)]
-            fn is_zero(&self) -> bool {
-                self.0.iter().all(|&e| e == 0)
+                if n > 0 {
+                    let mut t = 0;
+                    for i in &mut self.0 {
+                        let t2 = *i >> (64 - n);
+                        *i <<= n;
+                        *i |= t;
+                        t = t2;
+                    }
+                }
             }
+        }
 
+        impl ::std::ops::ShrAssign<u32> for #repr {
             #[inline(always)]
-            fn shr(&mut self, mut n: u32) {
+            fn shr_assign(&mut self, mut n: u32) {
                 if n as usize >= 64 * #limbs {
                     *self = Self::from(0);
                     return;
@@ -242,6 +255,23 @@ fn prime_field_repr_impl(repr: &syn::Ident, limbs: usize) -> proc_macro2::TokenS
                     }
                 }
             }
+        }
+
+        impl ::ff::PrimeFieldRepr for #repr {
+            #[inline(always)]
+            fn is_odd(&self) -> bool {
+                self.0[0] & 1 == 1
+            }
+
+            #[inline(always)]
+            fn is_even(&self) -> bool {
+                !self.is_odd()
+            }
+
+            #[inline(always)]
+            fn is_zero(&self) -> bool {
+                self.0.iter().all(|&e| e == 0)
+            }
 
             #[inline(always)]
             fn div2(&mut self) {
@@ -262,32 +292,6 @@ fn prime_field_repr_impl(repr: &syn::Ident, limbs: usize) -> proc_macro2::TokenS
                     *i <<= 1;
                     *i |= last;
                     last = tmp;
-                }
-            }
-
-            #[inline(always)]
-            fn shl(&mut self, mut n: u32) {
-                if n as usize >= 64 * #limbs {
-                    *self = Self::from(0);
-                    return;
-                }
-
-                while n >= 64 {
-                    let mut t = 0;
-                    for i in &mut self.0 {
-                        ::std::mem::swap(&mut t, i);
-                    }
-                    n -= 64;
-                }
-
-                if n > 0 {
-                    let mut t = 0;
-                    for i in &mut self.0 {
-                        let t2 = *i >> (64 - n);
-                        *i <<= n;
-                        *i |= t;
-                        t = t2;
-                    }
                 }
             }
 
