@@ -1,3 +1,5 @@
+#![feature(i128_type)]
+
 #![allow(unused_imports)]
 
 extern crate byteorder;
