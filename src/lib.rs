@@ -262,11 +262,12 @@ pub trait PrimeField: Field {
         Some(res)
     }
 
-    /// Convert this prime field element into a biginteger representation.
+    /// Converts a field element, represented as a biginteger, to a `PrimeField`
+    /// field element. Returns an error if the biginteger is not an element of
+    /// this prime field.
     fn from_repr(Self::Repr) -> Result<Self, PrimeFieldDecodingError>;
 
-    /// Convert a biginteger representation into a prime field element, if
-    /// the number is an element of the field.
+    /// Returns the biginteger representation of this `PrimeField` field element.
     fn into_repr(&self) -> Self::Repr;
 
     /// Returns the field characteristic; the modulus.
