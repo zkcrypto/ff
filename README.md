@@ -4,7 +4,7 @@
 
 ## Disclaimers
 
-* This library does not provide constant-time guarantees.
+-   This library does not provide constant-time guarantees.
 
 ## Usage
 
@@ -12,7 +12,7 @@ Add the `ff` crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ff = "0.4"
+ff = "0.6"
 ```
 
 The `ff` crate contains `Field`, `PrimeField`, `PrimeFieldRepr` and `SqrtField` traits.
@@ -29,7 +29,7 @@ First, enable the `derive` crate feature:
 
 ```toml
 [dependencies]
-ff = { version = "0.4", features = ["derive"] }
+ff = { version = "0.6", features = ["derive"] }
 ```
 
 And then use the macro like so:
@@ -53,9 +53,9 @@ And that's it! `Fp` now implements `Field` and `PrimeField`. `Fp` will also impl
 
 Licensed under either of
 
- * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
-   http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+-   Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
+    <http://www.apache.org/licenses/LICENSE-2.0>)
+-   MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 

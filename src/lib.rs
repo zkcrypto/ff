@@ -21,7 +21,7 @@ pub trait Field:
     Sized + Eq + Copy + Clone + Send + Sync + fmt::Debug + fmt::Display + 'static
 {
     /// Returns an element chosen uniformly at random using a user-provided RNG.
-    fn random<R: RngCore>(rng: &mut R) -> Self;
+    fn random<R: RngCore + ?std::marker::Sized>(rng: &mut R) -> Self;
 
     /// Returns the zero element of the field, the additive identity.
     fn zero() -> Self;
@@ -332,31 +332,36 @@ impl<E: AsRef<[u64]>> Iterator for BitIterator<E> {
     }
 }
 
-#[test]
-fn test_bit_iterator() {
-    let mut a = BitIterator::new([0xa953d79b83f6ab59, 0x6dea2059e200bd39]);
-    let expected = "01101101111010100010000001011001111000100000000010111101001110011010100101010011110101111001101110000011111101101010101101011001";
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    for e in expected.chars() {
-        assert!(a.next().unwrap() == (e == '1'));
+    #[test]
+    fn test_bit_iterator() {
+        let mut a = BitIterator::new([0xa953d79b83f6ab59, 0x6dea2059e200bd39]);
+        let expected = "01101101111010100010000001011001111000100000000010111101001110011010100101010011110101111001101110000011111101101010101101011001";
+
+        for e in expected.chars() {
+            assert!(a.next().unwrap() == (e == '1'));
+        }
+
+        assert!(a.next().is_none());
+
+        let expected = "1010010101111110101010000101101011101000011101110101001000011001100100100011011010001011011011010001011011101100110100111011010010110001000011110100110001100110011101101000101100011100100100100100001010011101010111110011101011000011101000111011011101011001";
+
+        let mut a = BitIterator::new([
+            0x429d5f3ac3a3b759,
+            0xb10f4c66768b1c92,
+            0x92368b6d16ecd3b4,
+            0xa57ea85ae8775219,
+        ]);
+
+        for e in expected.chars() {
+            assert!(a.next().unwrap() == (e == '1'));
+        }
+
+        assert!(a.next().is_none());
     }
-
-    assert!(a.next().is_none());
-
-    let expected = "1010010101111110101010000101101011101000011101110101001000011001100100100011011010001011011011010001011011101100110100111011010010110001000011110100110001100110011101101000101100011100100100100100001010011101010111110011101011000011101000111011011101011001";
-
-    let mut a = BitIterator::new([
-        0x429d5f3ac3a3b759,
-        0xb10f4c66768b1c92,
-        0x92368b6d16ecd3b4,
-        0xa57ea85ae8775219,
-    ]);
-
-    for e in expected.chars() {
-        assert!(a.next().unwrap() == (e == '1'));
-    }
-
-    assert!(a.next().is_none());
 }
 
 pub use self::arith_impl::*;
