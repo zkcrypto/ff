@@ -116,7 +116,7 @@ fn fetch_attr(name: &str, attrs: &[syn::Attribute]) -> Option<String> {
 // Implement PrimeFieldRepr for the wrapped ident `repr` with `limbs` limbs.
 fn prime_field_repr_impl(repr: &syn::Ident, limbs: usize) -> proc_macro2::TokenStream {
     quote! {
-        #[derive(Copy, Clone, PartialEq, Eq, Default)]
+        #[derive(Copy, Clone, PartialEq, Eq, Default, Zeroize)]
         pub struct #repr(pub [u64; #limbs]);
 
         impl ::std::fmt::Debug for #repr

@@ -11,14 +11,18 @@ extern crate ff_derive;
 #[cfg(feature = "derive")]
 pub use ff_derive::*;
 
+#[macro_use]
+extern crate zeroize;
+
 use rand_core::RngCore;
 use std::error::Error;
 use std::fmt;
 use std::io::{self, Read, Write};
+use zeroize::Zeroize;
 
 /// This trait represents an element of a field.
 pub trait Field:
-    Sized + Eq + Copy + Clone + Send + Sync + fmt::Debug + fmt::Display + 'static
+    Sized + Eq + Copy + Clone + Send + Sync + fmt::Debug + fmt::Display + 'static + Zeroize
 {
     /// Returns an element chosen uniformly at random using a user-provided RNG.
     fn random<R: RngCore + ?std::marker::Sized>(rng: &mut R) -> Self;
@@ -108,6 +112,7 @@ pub trait PrimeFieldRepr:
     + AsRef<[u64]>
     + AsMut<[u64]>
     + From<u64>
+    + Zeroize
 {
     /// Subtract another represetation from this one.
     fn sub_noborrow(&mut self, other: &Self);
