@@ -822,179 +822,8 @@ fn prime_field_impl(
         // x86_64 asm for four limbs
 
         let mut gen = proc_macro2::TokenStream::new();
-        gen.extend(quote!{
-            // println!("multiply before {:?} {:?}", (#a.0).0, (#b.0).0);
-            // println!("foo");
-            // Can remove all #b xor rax, rax; however see a minor perf hit due to false flag dependencies.
-            unsafe {
-                asm!(
-                    "# ============ PLEASE STAY \n\
-                     xor  rax, rax               \n\
-                     push rbp                    \n\
-                     mov  rdx, [rsi + 8*0]       \n\
-                     mulx r9,  r8,  [rdi + 8*0]  \n\
-                     mulx r10, rbx, [rdi + 8*1]  \n\
-                     adcx r9,  rbx               \n\
-                     mulx r11, rbx, [rdi + 8*2]  \n\
-                     adcx r10, rbx               \n\
-                     mulx r12, rbx, [rdi + 8*3]  \n\
-                     adcx r11, rbx               \n\
-                     adcx r12, rax               \n\
-                     xor  rax, rax               \n\
-                     mov  rdx, [rsi + 8*1]       \n\
-                     mulx rbx, rbp, [rdi + 8*0]  \n\
-                     adcx r9,  rbp               \n\
-                     adox r10, rbx               \n\
-                     mulx rbx, rbp, [rdi + 8*1]  \n\
-                     adcx r10, rbp               \n\
-                     adox r11, rbx               \n\
-                     mulx rbx, rbp, [rdi + 8*2]  \n\
-                     adcx r11, rbp               \n\
-                     adox r12, rbx               \n\
-                     mulx r13, rbp, [rdi + 8*3]  \n\
-                     adcx r12, rbp               \n\
-                     adox r13, rax               \n\
-                     adcx r13, rax               \n\
-                     xor  rax, rax               \n\
-                     mov  rdx, [rsi + 8*2]       \n\
-                     mulx rbx, rbp, [rdi + 8*0]  \n\
-                     adcx r10, rbp               \n\
-                     adox r11, rbx               \n\
-                     mulx rbx, rbp, [rdi + 8*1]  \n\
-                     adcx r11, rbp               \n\
-                     adox r12, rbx               \n\
-                     mulx rbx, rbp, [rdi + 8*2]  \n\
-                     adcx r12, rbp               \n\
-                     adox r13, rbx               \n\
-                     mulx r14, rbp, [rdi + 8*3]  \n\
-                     adcx r13, rbp               \n\
-                     adox r14, rax               \n\
-                     adcx r14, rax               \n\
-                     xor  rax, rax               \n\
-                     mov  rdx, [rsi + 8*3]       \n\
-                     mulx rbx, rbp, [rdi + 8*0]  \n\
-                     adcx r11, rbp               \n\
-                     adox r12, rbx               \n\
-                     mulx rbx, rbp, [rdi + 8*1]  \n\
-                     adcx r12, rbp               \n\
-                     adox r13, rbx               \n\
-                     mulx rbx, rbp, [rdi + 8*2]  \n\
-                     adcx r13, rbp               \n\
-                     adox r14, rbx               \n\
-                     mulx r15, rbp, [rdi + 8*3]  \n\
-                     adcx r14, rbp               \n\
-                     adox r15, rax               \n\
-                     adcx r15, rax               \n\
-                     xor  rax, rax               \n\
-                     mov  rdx, -4294967297       \n\
-                     mulx rbp, rdx, r8           \n\
-                     mov  rcx, 18446744069414584321 \n\
-                     mulx rbx, rbp, rcx          \n\
-                     adox r8,  rbp               \n\
-                     adcx r9,  rbx               \n\
-                     mov  rcx, 6034159408538082302 \n\
-                     mulx rbx, rbp, rcx          \n\
-                     adox r9,  rbp               \n\
-                     adcx r10, rbx               \n\
-                     mov  rcx, 3691218898639771653 \n\
-                     mulx rbx, rbp, rcx          \n\
-                     adox r10, rbp               \n\
-                     adcx r11, rbx               \n\
-                     mov  r8,  8353516859464449352 \n\
-                     mulx rbx, rbp, r8          \n\
-                     adox r11, rbp               \n\
-                     adcx r12, rbx               \n\
-                     adox r12, rax               \n\
-                     adcx r13, rax               \n\
-                     adox r13, rax               \n\
-                     adcx r14, rax               \n\
-                     adox r14, rax               \n\
-                     adcx r15, rax               \n\
-                     adox r15, rax               \n\
-                     mov  rdx, -4294967297       \n\
-                     mulx rbp, rdx, r9           \n\
-                     mov  rcx, 18446744069414584321 \n\
-                     mulx rbx, rbp, rcx          \n\
-                     adox r9,  rbp               \n\
-                     adcx r10, rbx               \n\
-                     mov  rcx, 6034159408538082302 \n\
-                     mulx rbx, rbp, rcx          \n\
-                     adox r10, rbp               \n\
-                     adcx r11, rbx               \n\
-                     mov  r9,  3691218898639771653 \n\
-                     mulx rbx, rbp, r9          \n\
-                     adox r11, rbp               \n\
-                     adcx r12, rbx               \n\
-                     mulx rbx, rbp, r8           \n\
-                     adox r12, rbp               \n\
-                     adcx r13, rbx               \n\
-                     adox r13, rax               \n\
-                     adcx r14, rax               \n\
-                     adox r14, rax               \n\
-                     adcx r15, rax               \n\
-                     adox r15, rax               \n\
-                     mov  rdx, -4294967297       \n\
-                     mulx rbp, rdx, r10          \n\
-                     mov  rcx, 18446744069414584321 \n\
-                     mulx rbx, rbp, rcx          \n\
-                     adox r10, rbp               \n\
-                     adcx r11, rbx               \n\
-                     mov  r10, 6034159408538082302 \n\
-                     mulx rbx, rbp, r10          \n\
-                     adox r11, rbp               \n\
-                     adcx r12, rbx               \n\
-                     mulx rbx, rbp, r9           \n\
-                     adox r12, rbp               \n\
-                     adcx r13, rbx               \n\
-                     mulx rbx, rbp, r8           \n\
-                     adox r13, rbp               \n\
-                     adcx r14, rbx               \n\
-                     adox r14, rax               \n\
-                     adcx r15, rax               \n\
-                     adox r15, rax               \n\
-                     mov  rdx, -4294967297       \n\
-                     mulx rbp, rdx, r11          \n\
-                     mulx rbx, rbp, rcx          \n\
-                     adox r11, rbp               \n\
-                     adcx r12, rbx               \n\
-                     mulx rbx, rbp, r10          \n\
-                     adox r12, rbp               \n\
-                     mov  [rdi + 8*0], r12       \n\
-                     adcx r13, rbx               \n\
-                     mulx rbx, rbp, r9           \n\
-                     adox r13, rbp               \n\
-                     mov  [rdi + 8*1], r13       \n\
-                     adcx r14, rbx               \n\
-                     mulx rbx, rbp, r8           \n\
-                     adox r14, rbp               \n\
-                     mov  [rdi + 8*2], r14       \n\
-                     adcx r15, rbx               \n\
-                     adox r15, rax               \n\
-                     mov  [rdi + 8*3], r15       \n\
-                     pop  rbp                    \n\
-                     sub  r12, rcx               \n\
-                     sbb  r13, r10               \n\
-                     sbb  r14, r9                \n\
-                     sbb  r15, r8                \n\
-                     jb   .L1${:uid}             \n\
-                     mov  [rdi + 8*1], r13       \n\
-                     mov  [rdi + 8*0], r12       \n\
-                     mov  [rdi + 8*2], r14       \n\
-                     mov  [rdi + 8*3], r15       \n\
-                     .L1${:uid}:                   \n"
-                        : "=&{rdi}"(&((#a.0).0[0]))
-                        : "{rdi}"(&((#a.0).0[0])), "{rsi}"(&((#b.0).0[0]))
-                        : "rax", "rdx", "rbp", "rbx", "rcx", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"
-                        : "intel", "volatile"
-                );
-            }
-            
-            // with printouts before an after this works
-            // println!("multiply after {:?} {:?}", (#a.0).0, (#b.0).0);
-            
-            // if (#a.0).0[0] == 0 {
-            //   println!("low result is 0 {:?}", (#a.0).0);
-            // }
+        gen.extend(quote! {
+            ::ff::mod_mul_4w_assign(&mut (#a.0).0, &(#b.0).0);
         });
 
         gen
@@ -1278,9 +1107,9 @@ fn prime_field_impl(
                             (other.0).0[3],
                             &mut (self.0).0[3]
                         );
-                        
+
                         let mut s_sub: [u64; 4] = mem::uninitialized();
-                        
+
                         carry = _subborrow_u64(
                             0,
                             (self.0).0[0],
@@ -1305,7 +1134,7 @@ fn prime_field_impl(
                             MODULUS.0[3],
                             &mut s_sub[3]
                         );
-                        
+
                         if carry == 0 {
                             // Direct assign fails since size can be 4 or 6
                             // Obviously code doesn't work at all for size 6
@@ -1319,7 +1148,7 @@ fn prime_field_impl(
                 } else {
                     // This cannot exceed the backing capacity.
                     self.0.add_nocarry(&other.0);
-                        
+
                     // However, it may need to be reduced.
                     self.reduce();
                 }

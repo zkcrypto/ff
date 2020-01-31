@@ -10,6 +10,12 @@
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 pub use ff_derive::PrimeField;
 
+#[cfg(target_arch = "x86_64")]
+mod asm;
+
+#[cfg(target_arch = "x86_64")]
+pub use asm::mod_mul_4w_assign;
+
 #[cfg(feature = "bits")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
 pub use bitvec::view::BitViewSized;
@@ -18,6 +24,7 @@ pub use bitvec::view::BitViewSized;
 use bitvec::{array::BitArray, order::Lsb0};
 use core::fmt;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+
 use rand_core::RngCore;
 use subtle::{ConditionallySelectable, CtOption};
 
