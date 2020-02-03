@@ -151,6 +151,32 @@
    red_256 \res
 .endm
 
+.macro red_below_m a name
+   mov    0x18\a,             %r12
+   shr    $0x38,              %r12
+   and    $0xC0,              %r12
+   mov    0x00\a,             %r8
+   sub    0x200(%rdx,%r12,1), %r8
+   mov    0x08\a,             %r9
+   sbb    0x208(%rdx,%r12,1), %r9
+   mov    0x10\a,             %r10
+   sbb    0x210(%rdx,%r12,1), %r10
+   mov    0x18\a,             %r11
+   sbb    0x218(%rdx,%r12,1), %r11
+
+   jnc    .Lred_done\name
+
+   add    0x240(%rdx),        %r8
+   adc    0x248(%rdx),        %r9
+   adc    0x250(%rdx),        %r10
+   adc    0x258(%rdx),        %r11
+
+.Lred_done\name:
+   mov    %r8,                0x00\a
+   mov    %r9,                0x08\a
+   mov    %r10,               0x10\a
+   mov    %r11,               0x18\a
+.endm
 
 .LM:
    .quad 0x0000000000000000
@@ -258,8 +284,8 @@ _mod_mul_4w:
 .global mod_mul_4w
 mod_mul_4w:
 #endif
-   // p1     = rdi
-   // p2     = rsi
+   // x      = rdi
+   // y      = rsi
    // result = rdx
    push %rbp
    push %rbx
@@ -269,11 +295,12 @@ mod_mul_4w:
    push %r15
    sub  $8*65, %rsp
    mov  %rdx,  %rcx  // rcx = result
-   // p1 * p2
+
+   // x * y
    mod_mul_256 (%rdi), (%rsi), (%rcx)
-   //mov (%rcx), %rdx
-   //add $100, %rdx
-   //mov %rdx, (%rcx)
+   lea         .LM(%rip),   %rdx
+   red_below_m (%rcx),      mm 
+
    add  $8*65, %rsp
    pop  %r15
    pop  %r14
