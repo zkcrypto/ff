@@ -821,6 +821,7 @@ fn prime_field_impl(
     ) -> proc_macro2::TokenStream {
         // x86_64 asm for four limbs
 
+        // TODO: add check for adx support
         let mut gen = proc_macro2::TokenStream::new();
         gen.extend(quote! {
             ::ff::mod_mul_4w_assign(&mut (#a.0).0, &(#b.0).0);
