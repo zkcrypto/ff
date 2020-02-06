@@ -821,10 +821,15 @@ fn prime_field_impl(
     ) -> proc_macro2::TokenStream {
         // x86_64 asm for four limbs
 
-        // TODO: add check for adx support
+        let default_impl = mul_impl_default(a.clone(), b.clone(), 4);
+
         let mut gen = proc_macro2::TokenStream::new();
         gen.extend(quote! {
-            ::ff::mod_mul_4w_assign(&mut (#a.0).0, &(#b.0).0);
+            if *::ff::CPU_SUPPORTS_ADX_INSTRUCTION {
+                ::ff::mod_mul_4w_assign(&mut (#a.0).0, &(#b.0).0);
+            } else {
+                #default_impl
+            }
         });
 
         gen

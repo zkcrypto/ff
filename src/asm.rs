@@ -1,3 +1,7 @@
+lazy_static::lazy_static! {
+    pub static ref CPU_SUPPORTS_ADX_INSTRUCTION: bool = is_x86_feature_detected!("adx");
+}
+
 #[link(name = "ff-derive-crypto", kind = "static")]
 extern "C" {
     fn mod_mul_4w(a: &[u64; 4], b: &[u64; 4], res: &mut [u64; 4]);

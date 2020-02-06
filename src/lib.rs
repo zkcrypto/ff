@@ -14,7 +14,7 @@ pub use ff_derive::PrimeField;
 mod asm;
 
 #[cfg(target_arch = "x86_64")]
-pub use asm::mod_mul_4w_assign;
+pub use asm::*;
 
 #[cfg(feature = "bits")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
