@@ -13,6 +13,9 @@ use std::str::FromStr;
 
 mod pow_fixed;
 
+const BLS_381_FR_MODULUS: &str =
+    "52435875175126190479447740508185965837690552500527637822603658699938581184513";
+
 enum ReprEndianness {
     Big,
     Little,
@@ -126,8 +129,9 @@ pub fn prime_field(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
     // We're given the modulus p of the prime field
-    let modulus: BigUint = fetch_attr("PrimeFieldModulus", &ast.attrs)
-        .expect("Please supply a PrimeFieldModulus attribute")
+    let modulus_raw = fetch_attr("PrimeFieldModulus", &ast.attrs)
+        .expect("Please supply a PrimeFieldModulus attribute");
+    let modulus: BigUint = modulus_raw
         .parse()
         .expect("PrimeFieldModulus should be a number");
 
@@ -178,6 +182,7 @@ pub fn prime_field(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     gen.extend(prime_field_impl(
         &ast.ident,
         &repr_ident,
+        &modulus_raw,
         &modulus,
         &endianness,
         limbs,
@@ -637,6 +642,7 @@ fn prime_field_constants_and_sqrt(
 fn prime_field_impl(
     name: &syn::Ident,
     repr: &syn::Ident,
+    modulus_raw: &str,
     modulus: &BigUint,
     endianness: &ReprEndianness,
     limbs: usize,
@@ -807,8 +813,9 @@ fn prime_field_impl(
         a: proc_macro2::TokenStream,
         b: proc_macro2::TokenStream,
         limbs: usize,
+        modulus_raw: &str,
     ) -> proc_macro2::TokenStream {
-        if limbs == 4 && cfg!(target_arch = "x86_64") {
+        if limbs == 4 && modulus_raw == BLS_381_FR_MODULUS && cfg!(target_arch = "x86_64") {
             mul_impl_asm4(a, b)
         } else {
             mul_impl_default(a, b, limbs)
@@ -909,7 +916,7 @@ fn prime_field_impl(
     }
 
     let squaring_impl = sqr_impl(quote! {self}, limbs);
-    let multiply_impl = mul_impl(quote! {self}, quote! {other}, limbs);
+    let multiply_impl = mul_impl(quote! {self}, quote! {other}, limbs, modulus_raw);
     let invert_impl = inv_impl(quote! {self}, name, modulus);
     let montgomery_impl = mont_impl(limbs);
 
