@@ -111,6 +111,7 @@ pub trait PrimeFieldRepr:
     + AsRef<[u64]>
     + AsMut<[u64]>
     + From<u64>
+    + zeroize::Zeroize
 {
     /// Subtract another represetation from this one.
     fn sub_noborrow(&mut self, other: &Self);
