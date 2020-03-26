@@ -1,6 +1,7 @@
-# ff
+# ff-zeroize
 
-`ff` is a finite field library written in pure Rust, with no `unsafe{}` code.
+* `ff-zeroize` is a temporary crate that enables `zeroize` features for `ff`crate
+* `ff` is a finite field library written in pure Rust, with no `unsafe{}` code.
 
 ## Disclaimers
 
@@ -12,7 +13,7 @@ Add the `ff` crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ff = "0.5"
+ff_zeroize = "0.6.1"
 ```
 
 The `ff` crate contains `Field`, `PrimeField`, `PrimeFieldRepr` and `SqrtField` traits.
@@ -29,7 +30,7 @@ First, enable the `derive` crate feature:
 
 ```toml
 [dependencies]
-ff = { version = "0.4", features = ["derive"] }
+ff_zeroize = { version = "0.6.1", features = ["derive"] }
 ```
 
 And then use the macro like so:
