@@ -1,6 +1,6 @@
 [package]
 name = "ff-zeroize"
-version = "0.6.2"
+version = "0.6.3"
 authors = ["Sean Bowe <ewillbefull@gmail.com>"]
 description = "Library for building and interfacing with finite fields"
 readme = "README.md"
