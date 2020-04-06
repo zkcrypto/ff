@@ -6,7 +6,7 @@
 
 #[cfg(feature = "derive")]
 #[macro_use]
-extern crate ff_derive_zeroize as ff_derive;
+extern crate ff_derive;
 
 #[cfg(feature = "derive")]
 pub use ff_derive::*;

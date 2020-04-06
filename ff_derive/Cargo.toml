@@ -1,5 +1,5 @@
 [package]
-name = "ff_derive-zeroize"
+name = "ff_derive"
 version = "0.6.2"
 authors = ["Sean Bowe <ewillbefull@gmail.com>"]
 description = "Procedural macro library used to build custom prime field implementations"
