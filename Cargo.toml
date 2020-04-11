@@ -21,7 +21,7 @@ lazy_static = "1.4.0"
 rand_core = { version = "0.6", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 
-[build-dependencies]
+[target.'cfg(target_arch = "x86_64")'.build-dependencies]
 cc = "1.0.50"
 
 [features]

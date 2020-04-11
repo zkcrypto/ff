@@ -1,8 +1,6 @@
-#[cfg(target_arch = "x86_64")]
-extern crate cc;
-
 fn main() {
-    if cfg!(target_arch = "x86_64") {
+    let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    if target_arch == "x86_64" {
         cc::Build::new()
             .flag("-c")
             .file("./asm/mul_4.S")
