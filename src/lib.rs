@@ -12,6 +12,7 @@ extern crate std;
 #[cfg(feature = "derive")]
 pub use ff_derive::*;
 
+use bitvec::{array::BitArray, order::Lsb0, view::BitView};
 use byteorder::ByteOrder;
 use core::convert::TryFrom;
 use core::fmt;
@@ -125,6 +126,9 @@ pub trait PrimeField: Field + From<u64> {
     /// representation.
     type Repr: Default + AsRef<[u8]> + AsMut<[u8]> + From<Self> + for<'r> From<&'r Self>;
 
+    /// The backing store for a bit representation of a prime field element.
+    type ReprBits: BitView;
+
     /// This indicates the endianness of [`PrimeField::Repr`].
     type ReprEndianness: Endianness;
 
@@ -183,6 +187,9 @@ pub trait PrimeField: Field + From<u64> {
     /// [`PrimeField::ReprEndianness`].
     fn to_repr(&self) -> Self::Repr;
 
+    /// Converts an element of the prime field into a little-endian sequence of bits.
+    fn to_le_bits(&self) -> BitArray<Lsb0, Self::ReprBits>;
+
     /// Returns true iff this element is odd.
     fn is_odd(&self) -> bool;
 
@@ -194,6 +201,9 @@ pub trait PrimeField: Field + From<u64> {
 
     /// Returns the field characteristic; the modulus.
     fn char() -> Self::Repr;
+
+    /// Returns the bits of the field characteristic (the modulus) in little-endian order.
+    fn char_le_bits() -> BitArray<Lsb0, Self::ReprBits>;
 
     /// How many bits are needed to represent an element of this field.
     const NUM_BITS: u32;

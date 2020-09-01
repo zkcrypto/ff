@@ -85,7 +85,7 @@ impl ReprEndianness {
 
     fn to_repr(
         &self,
-        repr: &syn::Ident,
+        repr: proc_macro2::TokenStream,
         mont_reduce_self_params: &proc_macro2::TokenStream,
         limbs: usize,
     ) -> proc_macro2::TokenStream {
@@ -494,6 +494,7 @@ fn prime_field_constants_and_sqrt(
     limbs: usize,
     generator: BigUint,
 ) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+    let bytes = limbs * 8;
     let modulus_num_bits = biguint_num_bits(modulus.clone());
 
     // The number of bits we should "shave" from a randomly sampled reputation, i.e.,
@@ -602,6 +603,7 @@ fn prime_field_constants_and_sqrt(
 
     let r = biguint_to_u64_vec(r, limbs);
     let modulus_repr = endianness.modulus_repr(modulus, limbs * 8);
+    let modulus_le_bytes = ReprEndianness::Little.modulus_repr(modulus, limbs * 8);
     let modulus = biguint_to_real_u64_vec(modulus.clone(), limbs);
 
     // Compute -m^-1 mod 2**64 by exponentiating by totient(2**64) - 1
@@ -614,8 +616,14 @@ fn prime_field_constants_and_sqrt(
 
     (
         quote! {
+            type REPR_BYTES = [u8; #bytes];
+            type REPR_BITS = REPR_BYTES;
+
             /// This is the modulus m of the prime field
             const MODULUS: #repr = #repr([#(#modulus_repr,)*]);
+
+            /// This is the modulus m of the prime field
+            const MODULUS_LE_BYTES: REPR_BITS = [#(#modulus_le_bytes,)*];
 
             /// This is the modulus m of the prime field in limb form
             const MODULUS_LIMBS: #name = #name([#(#modulus,)*]);
@@ -915,7 +923,12 @@ fn prime_field_impl(
 
     let repr_endianness = endianness.repr_endianness();
     let from_repr_impl = endianness.from_repr(name, limbs);
-    let to_repr_impl = endianness.to_repr(repr, &mont_reduce_self_params, limbs);
+    let to_repr_impl = endianness.to_repr(quote! {#repr}, &mont_reduce_self_params, limbs);
+    let to_le_bits_impl = ReprEndianness::Little.to_repr(
+        quote! {::bitvec::array::BitArray::new},
+        &mont_reduce_self_params,
+        limbs,
+    );
 
     let top_limb_index = limbs - 1;
 
@@ -1148,6 +1161,7 @@ fn prime_field_impl(
 
         impl ::ff::PrimeField for #name {
             type Repr = #repr;
+            type ReprBits = REPR_BITS;
             type ReprEndianness = #repr_endianness;
 
             fn from_repr(r: #repr) -> Option<#name> {
@@ -1156,6 +1170,10 @@ fn prime_field_impl(
 
             fn to_repr(&self) -> #repr {
                 #to_repr_impl
+            }
+
+            fn to_le_bits(&self) -> ::bitvec::array::BitArray<::bitvec::order::Lsb0, REPR_BITS> {
+                #to_le_bits_impl
             }
 
             #[inline(always)]
@@ -1170,6 +1188,10 @@ fn prime_field_impl(
 
             fn char() -> Self::Repr {
                 MODULUS
+            }
+
+            fn char_le_bits() -> ::bitvec::array::BitArray<::bitvec::order::Lsb0, REPR_BITS> {
+                ::bitvec::array::BitArray::new(MODULUS_LE_BYTES)
             }
 
             const NUM_BITS: u32 = MODULUS_BITS;

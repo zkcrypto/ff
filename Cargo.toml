@@ -14,6 +14,7 @@ repository = "https://github.com/ebfull/ff"
 edition = "2018"
 
 [dependencies]
+bitvec = { version = "0.18", default-features = false }
 byteorder = { version = "1", default-features = false }
 ff_derive = { version = "0.7", path = "ff_derive", optional = true }
 rand_core = { version = "0.5", default-features = false }
