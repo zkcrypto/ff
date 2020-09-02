@@ -15,14 +15,14 @@ edition = "2018"
 
 [dependencies]
 bitvec = { version = "0.18", default-features = false }
-byteorder = { version = "1", default-features = false }
+byteorder = { version = "1", default-features = false, optional = true }
 ff_derive = { version = "0.7", path = "ff_derive", optional = true }
 rand_core = { version = "0.5", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 
 [features]
 default = ["std"]
-derive = ["ff_derive"]
+derive = ["byteorder", "ff_derive"]
 std = []
 
 [[test]]

@@ -31,13 +31,6 @@ impl FromStr for ReprEndianness {
 }
 
 impl ReprEndianness {
-    fn repr_endianness(&self) -> proc_macro2::TokenStream {
-        match self {
-            ReprEndianness::Big => quote! {::byteorder::BigEndian},
-            ReprEndianness::Little => quote! {::byteorder::LittleEndian},
-        }
-    }
-
     fn modulus_repr(&self, modulus: &BigUint, bytes: usize) -> Vec<u8> {
         match self {
             ReprEndianness::Big => {
@@ -921,7 +914,6 @@ fn prime_field_impl(
     let mont_reduce_self_params = mont_reduce_params(quote! {self}, limbs);
     let mont_reduce_other_params = mont_reduce_params(quote! {other}, limbs);
 
-    let repr_endianness = endianness.repr_endianness();
     let from_repr_impl = endianness.from_repr(name, limbs);
     let to_repr_impl = endianness.to_repr(quote! {#repr}, &mont_reduce_self_params, limbs);
     let to_le_bits_impl = ReprEndianness::Little.to_repr(
@@ -1162,7 +1154,6 @@ fn prime_field_impl(
         impl ::ff::PrimeField for #name {
             type Repr = #repr;
             type ReprBits = REPR_BITS;
-            type ReprEndianness = #repr_endianness;
 
             fn from_repr(r: #repr) -> Option<#name> {
                 #from_repr_impl
