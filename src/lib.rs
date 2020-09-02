@@ -105,7 +105,7 @@ pub trait PrimeField: Field + From<u64> {
     type Repr: Default + AsRef<[u8]> + AsMut<[u8]> + From<Self> + for<'r> From<&'r Self>;
 
     /// The backing store for a bit representation of a prime field element.
-    type ReprBits: BitView;
+    type ReprBits: BitView + Send + Sync;
 
     /// Interpret a string of numbers as a (congruent) prime field element.
     /// Does not accept unnecessary leading zeroes or a blank string.
