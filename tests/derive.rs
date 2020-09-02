@@ -1,7 +1,7 @@
 //! This module exercises the `ff_derive` procedural macros, to ensure that changes to the
 //! `ff` crate are reflected in `ff_derive`.
 
-use core::ops::{MulAssign, SubAssign, AddAssign};
+use core::ops::{AddAssign, MulAssign, SubAssign};
 use ff::{Field, PrimeField};
 
 /// The BLS12-381 scalar field.
