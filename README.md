@@ -15,7 +15,7 @@ Add the `ff` crate to your `Cargo.toml`:
 ff = "0.7"
 ```
 
-The `ff` crate contains `Field`, `PrimeField`, `PrimeFieldRepr` and `SqrtField` traits.
+The `ff` crate contains the `Field` and `PrimeField` traits.
 See the **[documentation](https://docs.rs/ff/)** for more.
 
 ### #![derive(PrimeField)]
@@ -35,19 +35,17 @@ ff = { version = "0.7", features = ["derive"] }
 And then use the macro like so:
 
 ```rust
-extern crate rand;
 #[macro_use]
 extern crate ff;
 
 #[derive(PrimeField)]
 #[PrimeFieldModulus = "52435875175126190479447740508185965837690552500527637822603658699938581184513"]
 #[PrimeFieldGenerator = "7"]
-struct Fp(FpRepr);
+#[PrimeFieldReprEndianness = "little"]
+struct Fp([u64; 4]);
 ```
 
-And that's it! `Fp` now implements `Field` and `PrimeField`. `Fp` will also implement
-`SqrtField` if supported. The library implements `FpRepr` itself and derives
-`PrimeFieldRepr` for it.
+And that's it! `Fp` now implements `Field` and `PrimeField`.
 
 ## License
 
