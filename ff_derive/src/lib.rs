@@ -171,9 +171,7 @@ pub fn prime_field(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let (constants_impl, sqrt_impl) = prime_field_constants_and_sqrt(
         &ast.ident,
-        &repr_ident,
         &modulus,
-        &endianness,
         limbs,
         generator,
     );
@@ -481,9 +479,7 @@ fn test_exp() {
 
 fn prime_field_constants_and_sqrt(
     name: &syn::Ident,
-    repr: &syn::Ident,
     modulus: &BigUint,
-    endianness: &ReprEndianness,
     limbs: usize,
     generator: BigUint,
 ) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
@@ -595,7 +591,6 @@ fn prime_field_constants_and_sqrt(
     let r2 = biguint_to_u64_vec((&r * &r) % modulus, limbs);
 
     let r = biguint_to_u64_vec(r, limbs);
-    let modulus_repr = endianness.modulus_repr(modulus, limbs * 8);
     let modulus_le_bytes = ReprEndianness::Little.modulus_repr(modulus, limbs * 8);
     let modulus = biguint_to_real_u64_vec(modulus.clone(), limbs);
 
@@ -613,10 +608,7 @@ fn prime_field_constants_and_sqrt(
             type REPR_BITS = REPR_BYTES;
 
             /// This is the modulus m of the prime field
-            const MODULUS: #repr = #repr([#(#modulus_repr,)*]);
-
-            /// This is the modulus m of the prime field
-            const MODULUS_LE_BYTES: REPR_BITS = [#(#modulus_le_bytes,)*];
+            const MODULUS: REPR_BITS = [#(#modulus_le_bytes,)*];
 
             /// This is the modulus m of the prime field in limb form
             const MODULUS_LIMBS: #name = #name([#(#modulus,)*]);
@@ -1177,12 +1169,8 @@ fn prime_field_impl(
                 r.0[0] & 1 == 1
             }
 
-            fn char() -> Self::Repr {
-                MODULUS
-            }
-
             fn char_le_bits() -> ::bitvec::array::BitArray<::bitvec::order::Lsb0, REPR_BITS> {
-                ::bitvec::array::BitArray::new(MODULUS_LE_BYTES)
+                ::bitvec::array::BitArray::new(MODULUS)
             }
 
             const NUM_BITS: u32 = MODULUS_BITS;

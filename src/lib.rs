@@ -174,9 +174,6 @@ pub trait PrimeField: Field + From<u64> {
         !self.is_odd()
     }
 
-    /// Returns the field characteristic; the modulus.
-    fn char() -> Self::Repr;
-
     /// Returns the bits of the field characteristic (the modulus) in little-endian order.
     fn char_le_bits() -> BitArray<Lsb0, Self::ReprBits>;
 
