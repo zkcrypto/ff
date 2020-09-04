@@ -930,12 +930,14 @@ fn prime_field_impl(
 
         impl ::core::default::Default for #name {
             fn default() -> #name {
+                use ::ff::Field;
                 #name::zero()
             }
         }
 
         impl ::subtle::ConstantTimeEq for #name {
             fn ct_eq(&self, other: &#name) -> ::subtle::Choice {
+                use ::ff::PrimeField;
                 self.to_repr().ct_eq(&other.to_repr())
             }
         }
@@ -952,6 +954,7 @@ fn prime_field_impl(
         impl ::core::fmt::Debug for #name
         {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                use ::ff::PrimeField;
                 write!(f, "{}({:?})", stringify!(#name), self.to_repr())
             }
         }
@@ -983,6 +986,7 @@ fn prime_field_impl(
 
         impl ::core::fmt::Display for #name {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                use ::ff::PrimeField;
                 write!(f, "{}({})", stringify!(#name), self.to_repr())
             }
         }
@@ -998,12 +1002,14 @@ fn prime_field_impl(
 
         impl From<#name> for #repr {
             fn from(e: #name) -> #repr {
+                use ::ff::PrimeField;
                 e.to_repr()
             }
         }
 
         impl<'a> From<&'a #name> for #repr {
             fn from(e: &'a #name) -> #repr {
+                use ::ff::PrimeField;
                 e.to_repr()
             }
         }
@@ -1023,6 +1029,8 @@ fn prime_field_impl(
 
             #[inline]
             fn neg(self) -> #name {
+                use ::ff::Field;
+
                 let mut ret = self;
                 if !ret.is_zero() {
                     let mut tmp = MODULUS_LIMBS;
@@ -1038,6 +1046,8 @@ fn prime_field_impl(
 
             #[inline]
             fn add(self, other: &#name) -> #name {
+                use ::core::ops::AddAssign;
+
                 let mut ret = self;
                 ret.add_assign(other);
                 ret
@@ -1076,6 +1086,8 @@ fn prime_field_impl(
 
             #[inline]
             fn sub(self, other: &#name) -> Self {
+                use ::core::ops::SubAssign;
+
                 let mut ret = self;
                 ret.sub_assign(other);
                 ret
@@ -1115,6 +1127,8 @@ fn prime_field_impl(
 
             #[inline]
             fn mul(self, other: &#name) -> Self {
+                use ::core::ops::MulAssign;
+
                 let mut ret = self;
                 ret.mul_assign(other);
                 ret
