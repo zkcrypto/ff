@@ -31,13 +31,6 @@ impl FromStr for ReprEndianness {
 }
 
 impl ReprEndianness {
-    fn repr_endianness(&self) -> proc_macro2::TokenStream {
-        match self {
-            ReprEndianness::Big => quote! {::byteorder::BigEndian},
-            ReprEndianness::Little => quote! {::byteorder::LittleEndian},
-        }
-    }
-
     fn modulus_repr(&self, modulus: &BigUint, bytes: usize) -> Vec<u8> {
         match self {
             ReprEndianness::Big => {
@@ -85,7 +78,7 @@ impl ReprEndianness {
 
     fn to_repr(
         &self,
-        repr: &syn::Ident,
+        repr: proc_macro2::TokenStream,
         mont_reduce_self_params: &proc_macro2::TokenStream,
         limbs: usize,
     ) -> proc_macro2::TokenStream {
@@ -178,9 +171,7 @@ pub fn prime_field(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let (constants_impl, sqrt_impl) = prime_field_constants_and_sqrt(
         &ast.ident,
-        &repr_ident,
         &modulus,
-        &endianness,
         limbs,
         generator,
     );
@@ -488,12 +479,11 @@ fn test_exp() {
 
 fn prime_field_constants_and_sqrt(
     name: &syn::Ident,
-    repr: &syn::Ident,
     modulus: &BigUint,
-    endianness: &ReprEndianness,
     limbs: usize,
     generator: BigUint,
 ) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+    let bytes = limbs * 8;
     let modulus_num_bits = biguint_num_bits(modulus.clone());
 
     // The number of bits we should "shave" from a randomly sampled reputation, i.e.,
@@ -601,7 +591,7 @@ fn prime_field_constants_and_sqrt(
     let r2 = biguint_to_u64_vec((&r * &r) % modulus, limbs);
 
     let r = biguint_to_u64_vec(r, limbs);
-    let modulus_repr = endianness.modulus_repr(modulus, limbs * 8);
+    let modulus_le_bytes = ReprEndianness::Little.modulus_repr(modulus, limbs * 8);
     let modulus = biguint_to_real_u64_vec(modulus.clone(), limbs);
 
     // Compute -m^-1 mod 2**64 by exponentiating by totient(2**64) - 1
@@ -614,8 +604,11 @@ fn prime_field_constants_and_sqrt(
 
     (
         quote! {
+            type REPR_BYTES = [u8; #bytes];
+            type REPR_BITS = REPR_BYTES;
+
             /// This is the modulus m of the prime field
-            const MODULUS: #repr = #repr([#(#modulus_repr,)*]);
+            const MODULUS: REPR_BITS = [#(#modulus_le_bytes,)*];
 
             /// This is the modulus m of the prime field in limb form
             const MODULUS_LIMBS: #name = #name([#(#modulus,)*]);
@@ -913,9 +906,13 @@ fn prime_field_impl(
     let mont_reduce_self_params = mont_reduce_params(quote! {self}, limbs);
     let mont_reduce_other_params = mont_reduce_params(quote! {other}, limbs);
 
-    let repr_endianness = endianness.repr_endianness();
     let from_repr_impl = endianness.from_repr(name, limbs);
-    let to_repr_impl = endianness.to_repr(repr, &mont_reduce_self_params, limbs);
+    let to_repr_impl = endianness.to_repr(quote! {#repr}, &mont_reduce_self_params, limbs);
+    let to_le_bits_impl = ReprEndianness::Little.to_repr(
+        quote! {::bitvec::array::BitArray::new},
+        &mont_reduce_self_params,
+        limbs,
+    );
 
     let top_limb_index = limbs - 1;
 
@@ -1162,7 +1159,7 @@ fn prime_field_impl(
 
         impl ::ff::PrimeField for #name {
             type Repr = #repr;
-            type ReprEndianness = #repr_endianness;
+            type ReprBits = REPR_BITS;
 
             fn from_repr(r: #repr) -> Option<#name> {
                 #from_repr_impl
@@ -1170,6 +1167,10 @@ fn prime_field_impl(
 
             fn to_repr(&self) -> #repr {
                 #to_repr_impl
+            }
+
+            fn to_le_bits(&self) -> ::bitvec::array::BitArray<::bitvec::order::Lsb0, REPR_BITS> {
+                #to_le_bits_impl
             }
 
             #[inline(always)]
@@ -1182,8 +1183,8 @@ fn prime_field_impl(
                 r.0[0] & 1 == 1
             }
 
-            fn char() -> Self::Repr {
-                MODULUS
+            fn char_le_bits() -> ::bitvec::array::BitArray<::bitvec::order::Lsb0, REPR_BITS> {
+                ::bitvec::array::BitArray::new(MODULUS)
             }
 
             const NUM_BITS: u32 = MODULUS_BITS;

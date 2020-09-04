@@ -12,7 +12,7 @@ extern crate std;
 #[cfg(feature = "derive")]
 pub use ff_derive::*;
 
-use byteorder::ByteOrder;
+use bitvec::{array::BitArray, order::Lsb0, view::BitView};
 use core::convert::TryFrom;
 use core::fmt;
 use core::marker::PhantomData;
@@ -98,35 +98,14 @@ pub trait Field:
     }
 }
 
-/// Helper trait for converting the binary representation of a prime field element into a
-/// specific endianness. This is useful when you need to act on the bit representation
-/// of an element generically, as the native binary representation of a prime field is
-/// field-dependent.
-pub trait Endianness: ByteOrder {
-    /// Converts the provided representation between native and little-endian.
-    fn toggle_little_endian<T: AsMut<[u8]>>(t: &mut T);
-}
-
-impl Endianness for byteorder::BigEndian {
-    fn toggle_little_endian<T: AsMut<[u8]>>(t: &mut T) {
-        t.as_mut().reverse();
-    }
-}
-
-impl Endianness for byteorder::LittleEndian {
-    fn toggle_little_endian<T: AsMut<[u8]>>(_: &mut T) {
-        // No-op
-    }
-}
-
 /// This represents an element of a prime field.
 pub trait PrimeField: Field + From<u64> {
     /// The prime field can be converted back and forth into this binary
     /// representation.
     type Repr: Default + AsRef<[u8]> + AsMut<[u8]> + From<Self> + for<'r> From<&'r Self>;
 
-    /// This indicates the endianness of [`PrimeField::Repr`].
-    type ReprEndianness: Endianness;
+    /// The backing store for a bit representation of a prime field element.
+    type ReprBits: BitView + Send + Sync;
 
     /// Interpret a string of numbers as a (congruent) prime field element.
     /// Does not accept unnecessary leading zeroes or a blank string.
@@ -172,16 +151,19 @@ pub trait PrimeField: Field + From<u64> {
     /// this prime field, failing if the input is not canonical (is not smaller than the
     /// field's modulus).
     ///
-    /// The byte representation is interpreted with the endianness defined by
-    /// [`PrimeField::ReprEndianness`].
+    /// The byte representation is interpreted with the same endianness as elements
+    /// returned by [`PrimeField::to_repr`].
     fn from_repr(_: Self::Repr) -> Option<Self>;
 
     /// Converts an element of the prime field into the standard byte representation for
     /// this field.
     ///
-    /// The endianness of the byte representation is defined by
-    /// [`PrimeField::ReprEndianness`].
+    /// The endianness of the byte representation is implementation-specific. Generic
+    /// encodings of field elements should be treated as opaque.
     fn to_repr(&self) -> Self::Repr;
+
+    /// Converts an element of the prime field into a little-endian sequence of bits.
+    fn to_le_bits(&self) -> BitArray<Lsb0, Self::ReprBits>;
 
     /// Returns true iff this element is odd.
     fn is_odd(&self) -> bool;
@@ -192,8 +174,8 @@ pub trait PrimeField: Field + From<u64> {
         !self.is_odd()
     }
 
-    /// Returns the field characteristic; the modulus.
-    fn char() -> Self::Repr;
+    /// Returns the bits of the field characteristic (the modulus) in little-endian order.
+    fn char_le_bits() -> BitArray<Lsb0, Self::ReprBits>;
 
     /// How many bits are needed to represent an element of this field.
     const NUM_BITS: u32;
@@ -211,98 +193,6 @@ pub trait PrimeField: Field + From<u64> {
     /// Returns the 2^s root of unity computed by exponentiating the `multiplicative_generator()`
     /// by t.
     fn root_of_unity() -> Self;
-}
-
-/// Takes a little-endian representation of some value, and returns its bits in big-endian
-/// order.
-#[derive(Debug)]
-pub struct BitIterator<T, E: AsRef<[T]>> {
-    t: E,
-    n: usize,
-    _limb: PhantomData<T>,
-}
-
-impl<E: AsRef<[u64]>> BitIterator<u64, E> {
-    pub fn new(t: E) -> Self {
-        let n = t.as_ref().len() * 64;
-
-        BitIterator {
-            t,
-            n,
-            _limb: PhantomData::default(),
-        }
-    }
-}
-
-impl<E: AsRef<[u64]>> Iterator for BitIterator<u64, E> {
-    type Item = bool;
-
-    fn next(&mut self) -> Option<bool> {
-        if self.n == 0 {
-            None
-        } else {
-            self.n -= 1;
-            let part = self.n / 64;
-            let bit = self.n - (64 * part);
-
-            Some(self.t.as_ref()[part] & (1 << bit) > 0)
-        }
-    }
-}
-
-impl<E: AsRef<[u8]>> BitIterator<u8, E> {
-    pub fn new(t: E) -> Self {
-        let n = t.as_ref().len() * 8;
-
-        BitIterator {
-            t,
-            n,
-            _limb: PhantomData::default(),
-        }
-    }
-}
-
-impl<E: AsRef<[u8]>> Iterator for BitIterator<u8, E> {
-    type Item = bool;
-
-    fn next(&mut self) -> Option<bool> {
-        if self.n == 0 {
-            None
-        } else {
-            self.n -= 1;
-            let part = self.n / 8;
-            let bit = self.n - (8 * part);
-
-            Some(self.t.as_ref()[part] & (1 << bit) > 0)
-        }
-    }
-}
-
-#[test]
-fn test_bit_iterator() {
-    let mut a = BitIterator::<u64, _>::new([0xa953_d79b_83f6_ab59, 0x6dea_2059_e200_bd39]);
-    let expected = "01101101111010100010000001011001111000100000000010111101001110011010100101010011110101111001101110000011111101101010101101011001";
-
-    for e in expected.chars() {
-        assert!(a.next().unwrap() == (e == '1'));
-    }
-
-    assert!(a.next().is_none());
-
-    let expected = "1010010101111110101010000101101011101000011101110101001000011001100100100011011010001011011011010001011011101100110100111011010010110001000011110100110001100110011101101000101100011100100100100100001010011101010111110011101011000011101000111011011101011001";
-
-    let mut a = BitIterator::<u64, _>::new([
-        0x429d_5f3a_c3a3_b759,
-        0xb10f_4c66_768b_1c92,
-        0x9236_8b6d_16ec_d3b4,
-        0xa57e_a85a_e877_5219,
-    ]);
-
-    for e in expected.chars() {
-        assert!(a.next().unwrap() == (e == '1'));
-    }
-
-    assert!(a.next().is_none());
 }
 
 pub use self::arith_impl::*;
