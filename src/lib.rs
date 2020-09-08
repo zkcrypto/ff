@@ -65,6 +65,12 @@ pub trait Field:
     #[must_use]
     fn square(&self) -> Self;
 
+    /// Cubes this element.
+    #[must_use]
+    fn cube(&self) -> Self {
+        self.square() * self
+    }
+
     /// Doubles this element.
     #[must_use]
     fn double(&self) -> Self;
