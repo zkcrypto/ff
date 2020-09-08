@@ -187,17 +187,31 @@ pub trait PrimeField: Field + From<u64> {
     const NUM_BITS: u32;
 
     /// How many bits of information can be reliably stored in the field element.
+    ///
+    /// This is usually `Self::NUM_BITS - 1`.
     const CAPACITY: u32;
 
-    /// Returns the multiplicative generator of `char()` - 1 order. This element
-    /// must also be quadratic nonresidue.
+    /// Returns a fixed multiplicative generator of `modulus - 1` order. This element must
+    /// also be a quadratic nonresidue.
+    ///
+    /// It can be calculated using [SageMath] as `GF(modulus).primitive_element()`.
+    ///
+    /// Implementations of this method MUST ensure that this is the generator used to
+    /// derive `Self::root_of_unity`.
+    ///
+    /// [SageMath]: https://www.sagemath.org/
     fn multiplicative_generator() -> Self;
 
-    /// 2^s * t = `char()` - 1 with t odd.
+    /// An integer `s` satisfying the equation `2^s * t = modulus - 1` with `t` odd.
+    ///
+    /// This is the number of leading zero bits in the little-endian bit representation of
+    /// `modulus - 1`.
     const S: u32;
 
-    /// Returns the 2^s root of unity computed by exponentiating the `multiplicative_generator()`
-    /// by t.
+    /// Returns the `2^s` root of unity.
+    ///
+    /// It can be calculated by exponentiating `Self::multiplicative_generator` by `t`,
+    /// where `t = (modulus - 1) >> Self::S`.
     fn root_of_unity() -> Self;
 }
 
