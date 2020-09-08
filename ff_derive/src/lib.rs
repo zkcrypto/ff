@@ -377,17 +377,6 @@ fn prime_field_repr_impl(
             }
         }
 
-        impl ::core::fmt::Display for #repr {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                write!(f, "0x")?;
-                for i in #repr_iter_be {
-                    write!(f, "{:02x}", *i)?;
-                }
-
-                Ok(())
-            }
-        }
-
         impl AsRef<[u8]> for #repr {
             #[inline(always)]
             fn as_ref(&self) -> &[u8] {
@@ -978,13 +967,6 @@ fn prime_field_impl(
             #[inline(always)]
             fn partial_cmp(&self, other: &#name) -> Option<::core::cmp::Ordering> {
                 Some(self.cmp(other))
-            }
-        }
-
-        impl ::core::fmt::Display for #name {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                use ::ff::PrimeField;
-                write!(f, "{}({})", stringify!(#name), self.to_repr())
             }
         }
 
