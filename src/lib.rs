@@ -32,7 +32,6 @@ pub trait Field:
     + Send
     + Sync
     + fmt::Debug
-    + fmt::Display
     + 'static
     + ConditionallySelectable
     + Add<Output = Self>
