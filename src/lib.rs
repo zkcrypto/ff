@@ -185,10 +185,13 @@ pub trait PrimeField: Field + From<u64> {
     /// This is usually `Self::NUM_BITS - 1`.
     const CAPACITY: u32;
 
-    /// Returns the multiplicative generator of `modulus - 1` order. This element must
+    /// Returns a fixed multiplicative generator of `modulus - 1` order. This element must
     /// also be a quadratic nonresidue.
     ///
     /// It can be calculated using [SageMath] as `GF(modulus).primitive_element()`.
+    ///
+    /// Implementations of this method MUST ensure that this is the generator used to
+    /// derive `Self::root_of_unity`.
     ///
     /// [SageMath]: https://www.sagemath.org/
     fn multiplicative_generator() -> Self;
