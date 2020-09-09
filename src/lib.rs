@@ -4,6 +4,7 @@
 #![no_std]
 #![deny(intra_doc_link_resolution_failure)]
 #![allow(unused_imports)]
+#![forbid(unsafe_code)]
 
 #[cfg(feature = "std")]
 #[macro_use]
