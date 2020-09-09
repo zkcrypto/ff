@@ -14,14 +14,15 @@ repository = "https://github.com/ebfull/ff"
 edition = "2018"
 
 [dependencies]
-bitvec = { version = "0.20.0", default-features = false }
+bitvec = { version = "0.20.0", default-features = false, optional = true }
 byteorder = { version = "1", default-features = false, optional = true }
 ff_derive = { version = "0.8", path = "ff_derive", optional = true }
 rand_core = { version = "0.6", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 
 [features]
-default = ["std"]
+default = ["bits", "std"]
+bits = ["bitvec"]
 derive = ["byteorder", "ff_derive"]
 std = []
 
@@ -31,3 +32,7 @@ required-features = ["derive"]
 
 [badges]
 maintenance = { status = "actively-developed" }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
