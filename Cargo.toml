@@ -8,9 +8,9 @@ authors = [
 description = "Library for building and interfacing with finite fields"
 readme = "README.md"
 documentation = "https://docs.rs/ff/"
-homepage = "https://github.com/ebfull/ff"
+homepage = "https://github.com/zkcrypto/ff"
 license = "MIT/Apache-2.0"
-repository = "https://github.com/ebfull/ff"
+repository = "https://github.com/zkcrypto/ff"
 edition = "2018"
 
 [dependencies]
