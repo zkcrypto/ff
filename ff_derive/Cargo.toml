@@ -6,10 +6,10 @@ authors = [
     "Jack Grigg <thestr4d@gmail.com>",
 ]
 description = "Procedural macro library used to build custom prime field implementations"
-documentation = "https://docs.rs/ff/"
-homepage = "https://github.com/ebfull/ff"
+documentation = "https://docs.rs/ff-derive/"
+homepage = "https://github.com/zkcrypto/ff"
 license = "MIT/Apache-2.0"
-repository = "https://github.com/ebfull/ff"
+repository = "https://github.com/zkcrypto/ff"
 edition = "2018"
 
 [lib]
