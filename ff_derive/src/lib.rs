@@ -116,6 +116,7 @@ impl ReprEndianness {
     }
 }
 
+/// Derive the `PrimeField` trait.
 #[proc_macro_derive(
     PrimeField,
     attributes(PrimeFieldModulus, PrimeFieldGenerator, PrimeFieldReprEndianness)
@@ -1141,7 +1142,6 @@ fn prime_field_impl(
 
         impl ::ff::PrimeField for #name {
             type Repr = #repr;
-            type ReprBits = REPR_BITS;
 
             fn from_repr(r: #repr) -> Option<#name> {
                 #from_repr_impl
@@ -1149,10 +1149,6 @@ fn prime_field_impl(
 
             fn to_repr(&self) -> #repr {
                 #to_repr_impl
-            }
-
-            fn to_le_bits(&self) -> ::bitvec::array::BitArray<::bitvec::order::Lsb0, REPR_BITS> {
-                #to_le_bits_impl
             }
 
             #[inline(always)]
@@ -1163,10 +1159,6 @@ fn prime_field_impl(
                 );
 
                 r.0[0] & 1 == 1
-            }
-
-            fn char_le_bits() -> ::bitvec::array::BitArray<::bitvec::order::Lsb0, REPR_BITS> {
-                ::bitvec::array::BitArray::new(MODULUS)
             }
 
             const NUM_BITS: u32 = MODULUS_BITS;
@@ -1181,6 +1173,18 @@ fn prime_field_impl(
 
             fn root_of_unity() -> Self {
                 ROOT_OF_UNITY
+            }
+        }
+
+        impl ::ff::PrimeFieldBits for #name {
+            type ReprBits = REPR_BITS;
+
+            fn to_le_bits(&self) -> ::ff::FieldBits<REPR_BITS> {
+                #to_le_bits_impl
+            }
+
+            fn char_le_bits() -> ::ff::FieldBits<REPR_BITS> {
+                ::ff::FieldBits::new(MODULUS)
             }
         }
 

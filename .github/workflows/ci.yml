@@ -65,6 +65,11 @@ jobs:
         with:
           command: build
           args: --verbose --target thumbv6m-none-eabi --no-default-features
+      - name: Build with bits feature
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose --target thumbv6m-none-eabi --no-default-features --features bits
 
   doc-links:
     name: Nightly lint

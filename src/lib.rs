@@ -2,6 +2,7 @@
 
 // Catch documentation errors caused by code changes.
 #![no_std]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(intra_doc_link_resolution_failure)]
 #![allow(unused_imports)]
 #![forbid(unsafe_code)]
@@ -11,10 +12,14 @@
 extern crate std;
 
 #[cfg(feature = "derive")]
-pub use ff_derive::*;
+#[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
+pub use ff_derive::PrimeField;
 
+#[cfg(feature = "bits")]
+#[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
 pub use bitvec::view::BitView;
 
+#[cfg(feature = "bits")]
 use bitvec::{array::BitArray, order::Lsb0};
 use core::convert::TryFrom;
 use core::fmt;
@@ -26,6 +31,8 @@ use std::io::{self, Read, Write};
 use subtle::{ConditionallySelectable, CtOption};
 
 /// Bit representation of a field element.
+#[cfg(feature = "bits")]
+#[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
 pub type FieldBits<V> = BitArray<Lsb0, V>;
 
 /// This trait represents an element of a field.
@@ -115,9 +122,6 @@ pub trait PrimeField: Field + From<u64> {
     /// representation.
     type Repr: Default + AsRef<[u8]> + AsMut<[u8]>;
 
-    /// The backing store for a bit representation of a prime field element.
-    type ReprBits: BitView + Send + Sync;
-
     /// Interpret a string of numbers as a (congruent) prime field element.
     /// Does not accept unnecessary leading zeroes or a blank string.
     fn from_str(s: &str) -> Option<Self> {
@@ -173,9 +177,6 @@ pub trait PrimeField: Field + From<u64> {
     /// encodings of field elements should be treated as opaque.
     fn to_repr(&self) -> Self::Repr;
 
-    /// Converts an element of the prime field into a little-endian sequence of bits.
-    fn to_le_bits(&self) -> FieldBits<Self::ReprBits>;
-
     /// Returns true iff this element is odd.
     fn is_odd(&self) -> bool;
 
@@ -184,9 +185,6 @@ pub trait PrimeField: Field + From<u64> {
     fn is_even(&self) -> bool {
         !self.is_odd()
     }
-
-    /// Returns the bits of the field characteristic (the modulus) in little-endian order.
-    fn char_le_bits() -> FieldBits<Self::ReprBits>;
 
     /// How many bits are needed to represent an element of this field.
     const NUM_BITS: u32;
@@ -218,6 +216,20 @@ pub trait PrimeField: Field + From<u64> {
     /// It can be calculated by exponentiating `Self::multiplicative_generator` by `t`,
     /// where `t = (modulus - 1) >> Self::S`.
     fn root_of_unity() -> Self;
+}
+
+/// This represents the bits of an element of a prime field.
+#[cfg(feature = "bits")]
+#[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
+pub trait PrimeFieldBits: PrimeField {
+    /// The backing store for a bit representation of a prime field element.
+    type ReprBits: BitView + Send + Sync;
+
+    /// Converts an element of the prime field into a little-endian sequence of bits.
+    fn to_le_bits(&self) -> FieldBits<Self::ReprBits>;
+
+    /// Returns the bits of the field characteristic (the modulus) in little-endian order.
+    fn char_le_bits() -> FieldBits<Self::ReprBits>;
 }
 
 pub use self::arith_impl::*;
