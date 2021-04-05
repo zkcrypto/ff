@@ -14,7 +14,7 @@ repository = "https://github.com/zkcrypto/ff"
 edition = "2018"
 
 [dependencies]
-bitvec = { version = "0.20.0", default-features = false, optional = true }
+bitvec = { version = "0.22", default-features = false, optional = true }
 byteorder = { version = "1", default-features = false, optional = true }
 ff_derive = { version = "0.8", path = "ff_derive", optional = true }
 rand_core = { version = "0.6", default-features = false }

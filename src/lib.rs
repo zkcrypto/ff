@@ -3,7 +3,7 @@
 // Catch documentation errors caused by code changes.
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![deny(intra_doc_link_resolution_failure)]
+#![deny(broken_intra_doc_links)]
 #![allow(unused_imports)]
 #![forbid(unsafe_code)]
 
@@ -17,7 +17,7 @@ pub use ff_derive::PrimeField;
 
 #[cfg(feature = "bits")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
-pub use bitvec::view::BitView;
+pub use bitvec::view::BitViewSized;
 
 #[cfg(feature = "bits")]
 use bitvec::{array::BitArray, order::Lsb0};
@@ -223,7 +223,7 @@ pub trait PrimeField: Field + From<u64> {
 #[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
 pub trait PrimeFieldBits: PrimeField {
     /// The backing store for a bit representation of a prime field element.
-    type ReprBits: BitView + Send + Sync;
+    type ReprBits: BitViewSized + Send + Sync;
 
     /// Converts an element of the prime field into a little-endian sequence of bits.
     fn to_le_bits(&self) -> FieldBits<Self::ReprBits>;
