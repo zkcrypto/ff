@@ -4,12 +4,7 @@
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(broken_intra_doc_links)]
-#![allow(unused_imports)]
 #![forbid(unsafe_code)]
-
-#[cfg(feature = "std")]
-#[macro_use]
-extern crate std;
 
 #[cfg(feature = "derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
@@ -21,13 +16,9 @@ pub use bitvec::view::BitViewSized;
 
 #[cfg(feature = "bits")]
 use bitvec::{array::BitArray, order::Lsb0};
-use core::convert::TryFrom;
 use core::fmt;
-use core::marker::PhantomData;
-use core::ops::{Add, AddAssign, BitAnd, Mul, MulAssign, Neg, Shr, Sub, SubAssign};
+use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use rand_core::RngCore;
-#[cfg(feature = "std")]
-use std::io::{self, Read, Write};
 use subtle::{ConditionallySelectable, CtOption};
 
 /// Bit representation of a field element.
