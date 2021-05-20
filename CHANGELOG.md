@@ -21,6 +21,10 @@ and this library adheres to Rust's notion of
 - `ff::PrimeField::{ReprBits, char_le_bits, to_le_bits}` (replaced by
   `ff::PrimeFieldBits` trait).
 
+### Fixed
+- `#[derive(PrimeField)]` now works on small moduli (that fit in a single `u64`
+  limb).
+
 ## [0.9.0] - 2021-01-05
 ### Added
 - Re-export of `bitvec::view::BitView`.

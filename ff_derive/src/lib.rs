@@ -170,12 +170,8 @@ pub fn prime_field(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let mut gen = proc_macro2::TokenStream::new();
 
-    let (constants_impl, sqrt_impl) = prime_field_constants_and_sqrt(
-        &ast.ident,
-        &modulus,
-        limbs,
-        generator,
-    );
+    let (constants_impl, sqrt_impl) =
+        prime_field_constants_and_sqrt(&ast.ident, &modulus, limbs, generator);
 
     gen.extend(constants_impl);
     gen.extend(prime_field_repr_impl(&repr_ident, &endianness, limbs * 8));
@@ -523,7 +519,11 @@ fn prime_field_constants_and_sqrt(
             }
         } else if (modulus % BigUint::from_str("16").unwrap()) == BigUint::from_str("1").unwrap() {
             // Addition chain for (t - 1) // 2
-            let t_minus_1_over_2 = pow_fixed::generate(&quote! {self}, (&t - BigUint::one()) >> 1);
+            let t_minus_1_over_2 = if t == BigUint::one() {
+                quote!( #name::one() )
+            } else {
+                pow_fixed::generate(&quote! {self}, (&t - BigUint::one()) >> 1)
+            };
 
             quote! {
                 // Tonelli-Shank's algorithm for q mod 16 = 1
@@ -715,48 +715,55 @@ fn prime_field_impl(
     fn sqr_impl(a: proc_macro2::TokenStream, limbs: usize) -> proc_macro2::TokenStream {
         let mut gen = proc_macro2::TokenStream::new();
 
-        for i in 0..(limbs - 1) {
-            gen.extend(quote! {
-                let mut carry = 0;
-            });
+        if limbs > 1 {
+            for i in 0..(limbs - 1) {
+                gen.extend(quote! {
+                    let mut carry = 0;
+                });
 
-            for j in (i + 1)..limbs {
-                let temp = get_temp(i + j);
-                if i == 0 {
+                for j in (i + 1)..limbs {
+                    let temp = get_temp(i + j);
+                    if i == 0 {
+                        gen.extend(quote! {
+                            let #temp = ::ff::mac_with_carry(0, #a.0[#i], #a.0[#j], &mut carry);
+                        });
+                    } else {
+                        gen.extend(quote! {
+                            let #temp = ::ff::mac_with_carry(#temp, #a.0[#i], #a.0[#j], &mut carry);
+                        });
+                    }
+                }
+
+                let temp = get_temp(i + limbs);
+
+                gen.extend(quote! {
+                    let #temp = carry;
+                });
+            }
+
+            for i in 1..(limbs * 2) {
+                let temp0 = get_temp(limbs * 2 - i);
+                let temp1 = get_temp(limbs * 2 - i - 1);
+
+                if i == 1 {
                     gen.extend(quote! {
-                        let #temp = ::ff::mac_with_carry(0, #a.0[#i], #a.0[#j], &mut carry);
+                        let #temp0 = #temp1 >> 63;
+                    });
+                } else if i == (limbs * 2 - 1) {
+                    gen.extend(quote! {
+                        let #temp0 = #temp0 << 1;
                     });
                 } else {
                     gen.extend(quote! {
-                        let #temp = ::ff::mac_with_carry(#temp, #a.0[#i], #a.0[#j], &mut carry);
+                        let #temp0 = (#temp0 << 1) | (#temp1 >> 63);
                     });
                 }
             }
-
-            let temp = get_temp(i + limbs);
-
+        } else {
+            let temp1 = get_temp(1);
             gen.extend(quote! {
-                let #temp = carry;
+                let #temp1 = 0;
             });
-        }
-
-        for i in 1..(limbs * 2) {
-            let temp0 = get_temp(limbs * 2 - i);
-            let temp1 = get_temp(limbs * 2 - i - 1);
-
-            if i == 1 {
-                gen.extend(quote! {
-                    let #temp0 = #temp1 >> 63;
-                });
-            } else if i == (limbs * 2 - 1) {
-                gen.extend(quote! {
-                    let #temp0 = #temp0 << 1;
-                });
-            } else {
-                gen.extend(quote! {
-                    let #temp0 = (#temp0 << 1) | (#temp1 >> 63);
-                });
-            }
         }
 
         gen.extend(quote! {
