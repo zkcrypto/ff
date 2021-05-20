@@ -170,12 +170,8 @@ pub fn prime_field(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let mut gen = proc_macro2::TokenStream::new();
 
-    let (constants_impl, sqrt_impl) = prime_field_constants_and_sqrt(
-        &ast.ident,
-        &modulus,
-        limbs,
-        generator,
-    );
+    let (constants_impl, sqrt_impl) =
+        prime_field_constants_and_sqrt(&ast.ident, &modulus, limbs, generator);
 
     gen.extend(constants_impl);
     gen.extend(prime_field_repr_impl(&repr_ident, &endianness, limbs * 8));
