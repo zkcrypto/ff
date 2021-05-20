@@ -719,48 +719,55 @@ fn prime_field_impl(
     fn sqr_impl(a: proc_macro2::TokenStream, limbs: usize) -> proc_macro2::TokenStream {
         let mut gen = proc_macro2::TokenStream::new();
 
-        for i in 0..(limbs - 1) {
-            gen.extend(quote! {
-                let mut carry = 0;
-            });
+        if limbs > 1 {
+            for i in 0..(limbs - 1) {
+                gen.extend(quote! {
+                    let mut carry = 0;
+                });
 
-            for j in (i + 1)..limbs {
-                let temp = get_temp(i + j);
-                if i == 0 {
+                for j in (i + 1)..limbs {
+                    let temp = get_temp(i + j);
+                    if i == 0 {
+                        gen.extend(quote! {
+                            let #temp = ::ff::mac_with_carry(0, #a.0[#i], #a.0[#j], &mut carry);
+                        });
+                    } else {
+                        gen.extend(quote! {
+                            let #temp = ::ff::mac_with_carry(#temp, #a.0[#i], #a.0[#j], &mut carry);
+                        });
+                    }
+                }
+
+                let temp = get_temp(i + limbs);
+
+                gen.extend(quote! {
+                    let #temp = carry;
+                });
+            }
+
+            for i in 1..(limbs * 2) {
+                let temp0 = get_temp(limbs * 2 - i);
+                let temp1 = get_temp(limbs * 2 - i - 1);
+
+                if i == 1 {
                     gen.extend(quote! {
-                        let #temp = ::ff::mac_with_carry(0, #a.0[#i], #a.0[#j], &mut carry);
+                        let #temp0 = #temp1 >> 63;
+                    });
+                } else if i == (limbs * 2 - 1) {
+                    gen.extend(quote! {
+                        let #temp0 = #temp0 << 1;
                     });
                 } else {
                     gen.extend(quote! {
-                        let #temp = ::ff::mac_with_carry(#temp, #a.0[#i], #a.0[#j], &mut carry);
+                        let #temp0 = (#temp0 << 1) | (#temp1 >> 63);
                     });
                 }
             }
-
-            let temp = get_temp(i + limbs);
-
+        } else {
+            let temp1 = get_temp(1);
             gen.extend(quote! {
-                let #temp = carry;
+                let #temp1 = 0;
             });
-        }
-
-        for i in 1..(limbs * 2) {
-            let temp0 = get_temp(limbs * 2 - i);
-            let temp1 = get_temp(limbs * 2 - i - 1);
-
-            if i == 1 {
-                gen.extend(quote! {
-                    let #temp0 = #temp1 >> 63;
-                });
-            } else if i == (limbs * 2 - 1) {
-                gen.extend(quote! {
-                    let #temp0 = #temp0 << 1;
-                });
-            } else {
-                gen.extend(quote! {
-                    let #temp0 = (#temp0 << 1) | (#temp1 >> 63);
-                });
-            }
         }
 
         gen.extend(quote! {
