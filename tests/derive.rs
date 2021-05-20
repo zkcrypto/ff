@@ -10,3 +10,12 @@ extern crate ff;
 #[PrimeFieldGenerator = "7"]
 #[PrimeFieldReprEndianness = "little"]
 struct Bls381K12Scalar([u64; 4]);
+
+mod fermat {
+    /// The largest known Fermat prime, used to test the case `t = 1`.
+    #[derive(PrimeField)]
+    #[PrimeFieldModulus = "65537"]
+    #[PrimeFieldGenerator = "3"]
+    #[PrimeFieldReprEndianness = "little"]
+    struct Fermat65537Field([u64; 1]);
+}

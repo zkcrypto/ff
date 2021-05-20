@@ -523,7 +523,11 @@ fn prime_field_constants_and_sqrt(
             }
         } else if (modulus % BigUint::from_str("16").unwrap()) == BigUint::from_str("1").unwrap() {
             // Addition chain for (t - 1) // 2
-            let t_minus_1_over_2 = pow_fixed::generate(&quote! {self}, (&t - BigUint::one()) >> 1);
+            let t_minus_1_over_2 = if t == BigUint::one() {
+                quote!( #name::one() )
+            } else {
+                pow_fixed::generate(&quote! {self}, (&t - BigUint::one()) >> 1)
+            };
 
             quote! {
                 // Tonelli-Shank's algorithm for q mod 16 = 1
