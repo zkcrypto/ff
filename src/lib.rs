@@ -4,16 +4,19 @@
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(broken_intra_doc_links)]
-#![forbid(unsafe_code)]
+#![cfg_attr(not(feature = "asm"), forbid(unsafe_code))]
+
+#[cfg(feature = "std")]
+extern crate std;
 
 #[cfg(feature = "derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 pub use ff_derive::PrimeField;
 
-#[cfg(target_arch = "x86_64")]
+#[cfg(all(feature = "asm", target_arch = "x86_64"))]
 mod asm;
 
-#[cfg(target_arch = "x86_64")]
+#[cfg(all(feature = "asm", target_arch = "x86_64"))]
 pub use asm::*;
 
 #[cfg(feature = "bits")]

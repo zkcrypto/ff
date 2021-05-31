@@ -1,5 +1,5 @@
 lazy_static::lazy_static! {
-    pub static ref CPU_SUPPORTS_ADX_INSTRUCTION: bool = is_x86_feature_detected!("adx");
+    pub static ref CPU_SUPPORTS_ADX_INSTRUCTION: bool = std::is_x86_feature_detected!("adx");
 }
 
 #[link(name = "ff-derive-crypto", kind = "static")]
