@@ -12,7 +12,7 @@ pub fn mod_mul_4w_assign(a: &mut [u64; 4], b: &[u64; 4]) {
     unsafe {
         mod_mul_4w(&*a, b, &mut res);
     }
-    let _ = std::mem::replace(a, res);
+    let _ = core::mem::replace(a, res);
 }
 
 #[cfg(test)]

@@ -945,8 +945,8 @@ fn prime_field_impl(
             #[cfg(target_arch = "x86_64")]
             {
                 // This cannot exceed the backing capacity.
-                use std::arch::x86_64::*;
-                use std::mem;
+                use core::arch::x86_64::*;
+                use core::mem;
 
                 unsafe {
                     let mut carry = _addcarry_u64(
