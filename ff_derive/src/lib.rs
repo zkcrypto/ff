@@ -13,6 +13,9 @@ use std::str::FromStr;
 
 mod pow_fixed;
 
+const BLS_381_FR_MODULUS: &str =
+    "52435875175126190479447740508185965837690552500527637822603658699938581184513";
+
 enum ReprEndianness {
     Big,
     Little,
@@ -126,8 +129,9 @@ pub fn prime_field(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
     // We're given the modulus p of the prime field
-    let modulus: BigUint = fetch_attr("PrimeFieldModulus", &ast.attrs)
-        .expect("Please supply a PrimeFieldModulus attribute")
+    let modulus_raw = fetch_attr("PrimeFieldModulus", &ast.attrs)
+        .expect("Please supply a PrimeFieldModulus attribute");
+    let modulus: BigUint = modulus_raw
         .parse()
         .expect("PrimeFieldModulus should be a number");
 
@@ -178,6 +182,7 @@ pub fn prime_field(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     gen.extend(prime_field_impl(
         &ast.ident,
         &repr_ident,
+        &modulus_raw,
         &modulus,
         &endianness,
         limbs,
@@ -637,6 +642,7 @@ fn prime_field_constants_and_sqrt(
 fn prime_field_impl(
     name: &syn::Ident,
     repr: &syn::Ident,
+    modulus_raw: &str,
     modulus: &BigUint,
     endianness: &ReprEndianness,
     limbs: usize,
@@ -807,6 +813,45 @@ fn prime_field_impl(
         a: proc_macro2::TokenStream,
         b: proc_macro2::TokenStream,
         limbs: usize,
+        modulus_raw: &str,
+    ) -> proc_macro2::TokenStream {
+        if limbs == 4 && modulus_raw == BLS_381_FR_MODULUS {
+            mul_impl_asm4(a, b)
+        } else {
+            mul_impl_default(a, b, limbs)
+        }
+    }
+
+    fn mul_impl_asm4(
+        a: proc_macro2::TokenStream,
+        b: proc_macro2::TokenStream,
+    ) -> proc_macro2::TokenStream {
+        // x86_64 asm for four limbs
+        let default_impl = mul_impl_default(a.clone(), b.clone(), 4);
+
+        let mut gen = proc_macro2::TokenStream::new();
+        gen.extend(quote! {
+            #[cfg(target_arch = "x86_64")]
+            {
+                if *::ff::CPU_SUPPORTS_ADX_INSTRUCTION {
+                    ::ff::mod_mul_4w_assign(&mut (#a.0).0, &(#b.0).0);
+                } else {
+                    #default_impl
+                }
+            }
+            #[cfg(not(target_arch = "x86_64"))]
+            {
+                #default_impl
+            }
+        });
+
+        gen
+    }
+
+    fn mul_impl_default(
+        a: proc_macro2::TokenStream,
+        b: proc_macro2::TokenStream,
+        limbs: usize,
     ) -> proc_macro2::TokenStream {
         let mut gen = proc_macro2::TokenStream::new();
 
@@ -876,9 +921,125 @@ fn prime_field_impl(
         }
     }
 
+    fn add_assign_impl(
+        a: proc_macro2::TokenStream,
+        b: proc_macro2::TokenStream,
+        limbs: usize,
+    ) -> proc_macro2::TokenStream {
+        if limbs == 4 {
+            add_assign_asm_impl(a, b, limbs)
+        } else {
+            add_assign_default_impl(a, b, limbs)
+        }
+    }
+
+    fn add_assign_asm_impl(
+        a: proc_macro2::TokenStream,
+        b: proc_macro2::TokenStream,
+        limbs: usize,
+    ) -> proc_macro2::TokenStream {
+        let mut gen = proc_macro2::TokenStream::new();
+        let default_impl = add_assign_default_impl(a.clone(), b.clone(), limbs);
+
+        gen.extend(quote! {
+            #[cfg(target_arch = "x86_64")]
+            {
+                // This cannot exceed the backing capacity.
+                use core::arch::x86_64::*;
+                use core::mem;
+
+                unsafe {
+                    let mut carry = _addcarry_u64(
+                        0,
+                        (#a.0).0[0],
+                        (#b.0).0[0],
+                        &mut (#a.0).0[0]
+                    );
+                    carry = _addcarry_u64(
+                        carry, (#a.0).0[1],
+                        (#b.0).0[1],
+                        &mut (#a.0).0[1]
+                    );
+                    carry = _addcarry_u64(
+                        carry, (#a.0).0[2],
+                        (#b.0).0[2],
+                        &mut (#a.0).0[2]
+                    );
+                    _addcarry_u64(
+                        carry,
+                        (#a.0).0[3],
+                        (#b.0).0[3],
+                        &mut (#a.0).0[3]
+                    );
+
+                    let mut s_sub: [u64; 4] = mem::uninitialized();
+
+                    carry = _subborrow_u64(
+                        0,
+                        (#a.0).0[0],
+                        MODULUS.0[0],
+                        &mut s_sub[0]
+                    );
+                    carry = _subborrow_u64(
+                        carry,
+                        (#a.0).0[1],
+                        MODULUS.0[1],
+                        &mut s_sub[1]
+                    );
+                    carry = _subborrow_u64(
+                        carry,
+                        (#a.0).0[2],
+                        MODULUS.0[2],
+                        &mut s_sub[2]
+                    );
+                    carry = _subborrow_u64(
+                        carry,
+                        (#a.0).0[3],
+                        MODULUS.0[3],
+                        &mut s_sub[3]
+                    );
+
+                    if carry == 0 {
+                        // Direct assign fails since size can be 4 or 6
+                        // Obviously code doesn't work at all for size 6
+                        // (#a).0 = s_sub;
+                        (#a.0).0[0] = s_sub[0];
+                        (#a.0).0[1] = s_sub[1];
+                        (#a.0).0[2] = s_sub[2];
+                        (#a.0).0[3] = s_sub[3];
+                    }
+                }
+            }
+            #[cfg(not(target_arch = "x86_64"))]
+            {
+                #default_impl
+            }
+        });
+
+        gen
+    }
+
+    fn add_assign_default_impl(
+        a: proc_macro2::TokenStream,
+        b: proc_macro2::TokenStream,
+        _limbs: usize,
+    ) -> proc_macro2::TokenStream {
+        let mut gen = proc_macro2::TokenStream::new();
+
+        gen.extend(quote! {
+            // This cannot exceed the backing capacity.
+            #a.0.add_nocarry(&#b.0);
+
+            // However, it may need to be reduced.
+            #a.reduce();
+        });
+        gen
+    }
+
     let squaring_impl = sqr_impl(quote! {self}, limbs);
-    let multiply_impl = mul_impl(quote! {self}, quote! {other}, limbs);
+    let multiply_impl = mul_impl(quote! {self}, quote! {other}, limbs, modulus_raw);
     let invert_impl = inv_impl(quote! {self}, name, modulus);
+    let add_assign = add_assign_impl(quote! {self}, quote! {other}, limbs);
     let montgomery_impl = mont_impl(limbs);
 
     // self.0[0].ct_eq(&other.0[0]) & self.0[1].ct_eq(&other.0[1]) & ...
@@ -1053,11 +1214,7 @@ fn prime_field_impl(
         impl<'r> ::core::ops::AddAssign<&'r #name> for #name {
             #[inline]
             fn add_assign(&mut self, other: &#name) {
-                // This cannot exceed the backing capacity.
-                self.add_nocarry(other);
-
-                // However, it may need to be reduced.
-                self.reduce();
+                #add_assign
             }
         }
 

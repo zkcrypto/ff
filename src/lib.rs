@@ -4,11 +4,20 @@
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(broken_intra_doc_links)]
-#![forbid(unsafe_code)]
+#![cfg_attr(not(feature = "asm"), forbid(unsafe_code))]
+
+#[cfg(feature = "std")]
+extern crate std;
 
 #[cfg(feature = "derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 pub use ff_derive::PrimeField;
+
+#[cfg(all(feature = "asm", target_arch = "x86_64"))]
+mod asm;
+
+#[cfg(all(feature = "asm", target_arch = "x86_64"))]
+pub use asm::*;
 
 #[cfg(feature = "bits")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
@@ -18,6 +27,7 @@ pub use bitvec::view::BitViewSized;
 use bitvec::{array::BitArray, order::Lsb0};
 use core::fmt;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+
 use rand_core::RngCore;
 use subtle::{ConditionallySelectable, CtOption};
 
