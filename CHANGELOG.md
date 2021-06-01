@@ -6,6 +6,8 @@ and this library adheres to Rust's notion of
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.10.0] - 2021-06-01
 ### Added
 - `ff::PrimeFieldBits: PrimeField` trait, behind a `bits` feature flag.
 
