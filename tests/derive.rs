@@ -1,5 +1,6 @@
 //! This module exercises the `ff_derive` procedural macros, to ensure that changes to the
-//! `ff` crate are reflected in `ff_derive`.
+//! `ff` crate are reflected in `ff_derive`. It also uses the resulting field to test some
+//! of the APIs provided by `ff`, such as batch inversion.
 
 #[macro_use]
 extern crate ff;
@@ -18,4 +19,53 @@ mod fermat {
     #[PrimeFieldGenerator = "3"]
     #[PrimeFieldReprEndianness = "little"]
     struct Fermat65537Field([u64; 1]);
+}
+
+#[test]
+fn batch_inversion() {
+    use ff::{BatchInverter, Field};
+
+    let one = Bls381K12Scalar::one();
+
+    // [1, 2, 3, 4]
+    let values: Vec<_> = (0..4)
+        .scan(one, |acc, _| {
+            let ret = *acc;
+            *acc += &one;
+            Some(ret)
+        })
+        .collect();
+
+    // Test BatchInverter::invert_with_external_scratch
+    {
+        let mut elements = values.clone();
+        let mut scratch_space = vec![Bls381K12Scalar::zero(); elements.len()];
+        BatchInverter::invert_with_external_scratch(&mut elements, &mut scratch_space);
+        for (a, a_inv) in values.iter().zip(elements.into_iter()) {
+            assert_eq!(*a * a_inv, one);
+        }
+    }
+
+    // Test BatchInverter::invert_with_internal_scratch
+    {
+        let mut items: Vec<_> = values.iter().cloned().map(|p| (p, one)).collect();
+        BatchInverter::invert_with_internal_scratch(
+            &mut items,
+            |item| &mut item.0,
+            |item| &mut item.1,
+        );
+        for (a, (a_inv, _)) in values.iter().zip(items.into_iter()) {
+            assert_eq!(*a * a_inv, one);
+        }
+    }
+
+    // Test BatchInvert trait
+    {
+        use ff::BatchInvert;
+        let mut elements = values.clone();
+        elements.iter_mut().batch_invert();
+        for (a, a_inv) in values.iter().zip(elements.into_iter()) {
+            assert_eq!(*a * a_inv, one);
+        }
+    }
 }

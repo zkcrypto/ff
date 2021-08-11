@@ -22,9 +22,10 @@ subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 
 [features]
 default = ["bits", "std"]
+alloc = []
 bits = ["bitvec"]
 derive = ["byteorder", "ff_derive"]
-std = []
+std = ["alloc"]
 
 [[test]]
 name = "derive"
