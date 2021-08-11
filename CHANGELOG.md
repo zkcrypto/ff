@@ -6,6 +6,8 @@ and this library adheres to Rust's notion of
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.10.1] - 2021-08-11
 ### Added
 - `ff::BatchInvert` extension trait, implemented for iterators over mutable field elements
   which allows those field elements to be inverted in a batch. This trait is behind the
