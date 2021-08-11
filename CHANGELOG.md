@@ -7,6 +7,14 @@ and this library adheres to Rust's notion of
 
 ## [Unreleased]
 
+## [0.10.1] - 2021-08-11
+### Added
+- `ff::BatchInvert` extension trait, implemented for iterators over mutable field elements
+  which allows those field elements to be inverted in a batch. This trait is behind the
+  new `alloc` feature flag.
+- `ff::BatchInverter` struct, which provides methods for non-allocating batch inversion of
+  field elements contained within slices.
+
 ## [0.10.0] - 2021-06-01
 ### Added
 - `ff::PrimeFieldBits: PrimeField` trait, behind a `bits` feature flag.

@@ -6,6 +6,12 @@
 #![deny(broken_intra_doc_links)]
 #![forbid(unsafe_code)]
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+mod batch;
+pub use batch::*;
+
 #[cfg(feature = "derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 pub use ff_derive::PrimeField;
