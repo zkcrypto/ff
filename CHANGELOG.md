@@ -6,6 +6,8 @@ and this library adheres to Rust's notion of
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `subtle::ConstantTimeEq` bound on `ff::Field`
 
 ## [0.10.1] - 2021-08-11
 ### Added

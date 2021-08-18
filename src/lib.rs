@@ -25,7 +25,7 @@ use bitvec::{array::BitArray, order::Lsb0};
 use core::fmt;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use rand_core::RngCore;
-use subtle::{ConditionallySelectable, CtOption};
+use subtle::{ConditionallySelectable, ConstantTimeEq, CtOption};
 
 /// Bit representation of a field element.
 #[cfg(feature = "bits")]
@@ -44,6 +44,7 @@ pub trait Field:
     + fmt::Debug
     + 'static
     + ConditionallySelectable
+    + ConstantTimeEq
     + Add<Output = Self>
     + Sub<Output = Self>
     + Mul<Output = Self>
