@@ -118,7 +118,7 @@ pub trait Field:
 pub trait PrimeField: Field + From<u64> {
     /// The prime field can be converted back and forth into this binary
     /// representation.
-    type Repr: Default + AsRef<[u8]> + AsMut<[u8]>;
+    type Repr: Copy + Default + Send + Sync + AsRef<[u8]> + AsMut<[u8]>;
 
     /// Interpret a string of numbers as a (congruent) prime field element.
     /// Does not accept unnecessary leading zeroes or a blank string.
