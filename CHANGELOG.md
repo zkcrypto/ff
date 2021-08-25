@@ -8,7 +8,7 @@ and this library adheres to Rust's notion of
 ## [Unreleased]
 ### Added
 - `subtle::ConstantTimeEq` bound on `ff::Field`
-- `Copy + Send + Sync` bounds on `ff::PrimeField::Repr`
+- `Copy + Send + Sync + 'static` bounds on `ff::PrimeField::Repr`
 
 ## [0.10.1] - 2021-08-11
 ### Added
