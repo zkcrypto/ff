@@ -230,7 +230,13 @@ pub trait PrimeFieldBits: PrimeField {
     fn char_le_bits() -> FieldBits<Self::ReprBits>;
 }
 
-pub use self::arith_impl::*;
+/// Functions and re-exported crates used by the [`PrimeField`] derive macro.
+#[cfg(feature = "derive")]
+#[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
+pub mod derive {
+    pub use crate::arith_impl::*;
+    pub use {bitvec, byteorder, rand_core, subtle};
+}
 
 mod arith_impl {
     /// Calculate a - b - borrow, returning the result and modifying

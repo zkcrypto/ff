@@ -51,16 +51,16 @@ impl ReprEndianness {
     fn from_repr(&self, name: &syn::Ident, limbs: usize) -> proc_macro2::TokenStream {
         let read_repr = match self {
             ReprEndianness::Big => quote! {
-                ::byteorder::BigEndian::read_u64_into(r.as_ref(), &mut inner[..]);
+                ::ff::derive::byteorder::BigEndian::read_u64_into(r.as_ref(), &mut inner[..]);
                 inner.reverse();
             },
             ReprEndianness::Little => quote! {
-                ::byteorder::LittleEndian::read_u64_into(r.as_ref(), &mut inner[..]);
+                ::ff::derive::byteorder::LittleEndian::read_u64_into(r.as_ref(), &mut inner[..]);
             },
         };
 
         quote! {
-            use ::byteorder::ByteOrder;
+            use ::ff::derive::byteorder::ByteOrder;
 
             let r = {
                 let mut inner = [0u64; #limbs];
@@ -87,15 +87,15 @@ impl ReprEndianness {
         let write_repr = match self {
             ReprEndianness::Big => quote! {
                 r.0.reverse();
-                ::byteorder::BigEndian::write_u64_into(&r.0, &mut repr[..]);
+                ::ff::derive::byteorder::BigEndian::write_u64_into(&r.0, &mut repr[..]);
             },
             ReprEndianness::Little => quote! {
-                ::byteorder::LittleEndian::write_u64_into(&r.0, &mut repr[..]);
+                ::ff::derive::byteorder::LittleEndian::write_u64_into(&r.0, &mut repr[..]);
             },
         };
 
         quote! {
-            use ::byteorder::ByteOrder;
+            use ::ff::derive::byteorder::ByteOrder;
 
             let mut r = *self;
             r.mont_reduce(
@@ -337,8 +337,8 @@ fn prime_field_repr_impl(
         #[derive(Copy, Clone)]
         pub struct #repr(pub [u8; #bytes]);
 
-        impl ::subtle::ConstantTimeEq for #repr {
-            fn ct_eq(&self, other: &#repr) -> ::subtle::Choice {
+        impl ::ff::derive::subtle::ConstantTimeEq for #repr {
+            fn ct_eq(&self, other: &#repr) -> ::ff::derive::subtle::Choice {
                 self.0
                     .iter()
                     .zip(other.0.iter())
@@ -349,7 +349,7 @@ fn prime_field_repr_impl(
 
         impl ::core::cmp::PartialEq for #repr {
             fn eq(&self, other: &#repr) -> bool {
-                use ::subtle::ConstantTimeEq;
+                use ::ff::derive::subtle::ConstantTimeEq;
                 self.ct_eq(other).into()
             }
         }
@@ -503,7 +503,7 @@ fn prime_field_constants_and_sqrt(
             );
 
             quote! {
-                use ::subtle::ConstantTimeEq;
+                use ::ff::derive::subtle::ConstantTimeEq;
 
                 // Because r = 3 (mod 4)
                 // sqrt can be done with only one exponentiation,
@@ -512,7 +512,7 @@ fn prime_field_constants_and_sqrt(
                     #mod_plus_1_over_4
                 };
 
-                ::subtle::CtOption::new(
+                ::ff::derive::subtle::CtOption::new(
                     sqrt,
                     (sqrt * &sqrt).ct_eq(self), // Only return Some if it's the square root.
                 )
@@ -528,7 +528,7 @@ fn prime_field_constants_and_sqrt(
             quote! {
                 // Tonelli-Shank's algorithm for q mod 16 = 1
                 // https://eprint.iacr.org/2012/685.pdf (page 12, algorithm 5)
-                use ::subtle::{ConditionallySelectable, ConstantTimeEq};
+                use ::ff::derive::subtle::{ConditionallySelectable, ConstantTimeEq};
 
                 // w = self^((t - 1) // 2)
                 let w = {
@@ -545,7 +545,7 @@ fn prime_field_constants_and_sqrt(
                 for max_v in (1..=S).rev() {
                     let mut k = 1;
                     let mut tmp = b.square();
-                    let mut j_less_than_v: ::subtle::Choice = 1.into();
+                    let mut j_less_than_v: ::ff::derive::subtle::Choice = 1.into();
 
                     for j in 2..max_v {
                         let tmp_is_one = tmp.ct_eq(&#name::one());
@@ -564,7 +564,7 @@ fn prime_field_constants_and_sqrt(
                     v = k;
                 }
 
-                ::subtle::CtOption::new(
+                ::ff::derive::subtle::CtOption::new(
                     x,
                     (x * &x).ct_eq(self), // Only return Some if it's the square root.
                 )
@@ -671,14 +671,14 @@ fn prime_field_impl(
                 gen.extend(quote! {
                     let k = #temp.wrapping_mul(INV);
                     let mut carry = 0;
-                    ::ff::mac_with_carry(#temp, k, MODULUS_LIMBS.0[0], &mut carry);
+                    ::ff::derive::mac_with_carry(#temp, k, MODULUS_LIMBS.0[0], &mut carry);
                 });
             }
 
             for j in 1..limbs {
                 let temp = get_temp(i + j);
                 gen.extend(quote! {
-                    #temp = ::ff::mac_with_carry(#temp, k, MODULUS_LIMBS.0[#j], &mut carry);
+                    #temp = ::ff::derive::mac_with_carry(#temp, k, MODULUS_LIMBS.0[#j], &mut carry);
                 });
             }
 
@@ -686,11 +686,11 @@ fn prime_field_impl(
 
             if i == 0 {
                 gen.extend(quote! {
-                    #temp = ::ff::adc(#temp, 0, &mut carry);
+                    #temp = ::ff::derive::adc(#temp, 0, &mut carry);
                 });
             } else {
                 gen.extend(quote! {
-                    #temp = ::ff::adc(#temp, carry2, &mut carry);
+                    #temp = ::ff::derive::adc(#temp, carry2, &mut carry);
                 });
             }
 
@@ -725,11 +725,11 @@ fn prime_field_impl(
                     let temp = get_temp(i + j);
                     if i == 0 {
                         gen.extend(quote! {
-                            let #temp = ::ff::mac_with_carry(0, #a.0[#i], #a.0[#j], &mut carry);
+                            let #temp = ::ff::derive::mac_with_carry(0, #a.0[#i], #a.0[#j], &mut carry);
                         });
                     } else {
                         gen.extend(quote! {
-                            let #temp = ::ff::mac_with_carry(#temp, #a.0[#i], #a.0[#j], &mut carry);
+                            let #temp = ::ff::derive::mac_with_carry(#temp, #a.0[#i], #a.0[#j], &mut carry);
                         });
                     }
                 }
@@ -775,16 +775,16 @@ fn prime_field_impl(
             let temp1 = get_temp(i * 2 + 1);
             if i == 0 {
                 gen.extend(quote! {
-                    let #temp0 = ::ff::mac_with_carry(0, #a.0[#i], #a.0[#i], &mut carry);
+                    let #temp0 = ::ff::derive::mac_with_carry(0, #a.0[#i], #a.0[#i], &mut carry);
                 });
             } else {
                 gen.extend(quote! {
-                    let #temp0 = ::ff::mac_with_carry(#temp0, #a.0[#i], #a.0[#i], &mut carry);
+                    let #temp0 = ::ff::derive::mac_with_carry(#temp0, #a.0[#i], #a.0[#i], &mut carry);
                 });
             }
 
             gen.extend(quote! {
-                let #temp1 = ::ff::adc(#temp1, 0, &mut carry);
+                let #temp1 = ::ff::derive::adc(#temp1, 0, &mut carry);
             });
         }
 
@@ -820,11 +820,11 @@ fn prime_field_impl(
 
                 if i == 0 {
                     gen.extend(quote! {
-                        let #temp = ::ff::mac_with_carry(0, #a.0[#i], #b.0[#j], &mut carry);
+                        let #temp = ::ff::derive::mac_with_carry(0, #a.0[#i], #b.0[#j], &mut carry);
                     });
                 } else {
                     gen.extend(quote! {
-                        let #temp = ::ff::mac_with_carry(#temp, #a.0[#i], #b.0[#j], &mut carry);
+                        let #temp = ::ff::derive::mac_with_carry(#temp, #a.0[#i], #b.0[#j], &mut carry);
                     });
                 }
             }
@@ -860,7 +860,7 @@ fn prime_field_impl(
         let mod_minus_2 = pow_fixed::generate(&a, modulus - BigUint::from(2u64));
 
         quote! {
-            use ::subtle::ConstantTimeEq;
+            use ::ff::derive::subtle::ConstantTimeEq;
 
             // By Euler's theorem, if `a` is coprime to `p` (i.e. `gcd(a, p) = 1`), then:
             //     a^-1 ≡ a^(phi(p) - 1) mod p
@@ -872,7 +872,7 @@ fn prime_field_impl(
                 #mod_minus_2
             };
 
-            ::subtle::CtOption::new(inv, !#a.ct_eq(&#name::zero()))
+            ::ff::derive::subtle::CtOption::new(inv, !#a.ct_eq(&#name::zero()))
         }
     }
 
@@ -906,7 +906,7 @@ fn prime_field_impl(
     let from_repr_impl = endianness.from_repr(name, limbs);
     let to_repr_impl = endianness.to_repr(quote! {#repr}, &mont_reduce_self_params, limbs);
     let to_le_bits_impl = ReprEndianness::Little.to_repr(
-        quote! {::bitvec::array::BitArray::new},
+        quote! {::ff::derive::bitvec::array::BitArray::new},
         &mont_reduce_self_params,
         limbs,
     );
@@ -929,8 +929,8 @@ fn prime_field_impl(
             }
         }
 
-        impl ::subtle::ConstantTimeEq for #name {
-            fn ct_eq(&self, other: &#name) -> ::subtle::Choice {
+        impl ::ff::derive::subtle::ConstantTimeEq for #name {
+            fn ct_eq(&self, other: &#name) -> ::ff::derive::subtle::Choice {
                 use ::ff::PrimeField;
                 self.to_repr().ct_eq(&other.to_repr())
             }
@@ -938,7 +938,7 @@ fn prime_field_impl(
 
         impl ::core::cmp::PartialEq for #name {
             fn eq(&self, other: &#name) -> bool {
-                use ::subtle::ConstantTimeEq;
+                use ::ff::derive::subtle::ConstantTimeEq;
                 self.ct_eq(other).into()
             }
         }
@@ -1001,8 +1001,8 @@ fn prime_field_impl(
             }
         }
 
-        impl ::subtle::ConditionallySelectable for #name {
-            fn conditional_select(a: &#name, b: &#name, choice: ::subtle::Choice) -> #name {
+        impl ::ff::derive::subtle::ConditionallySelectable for #name {
+            fn conditional_select(a: &#name, b: &#name, choice: ::ff::derive::subtle::Choice) -> #name {
                 let mut res = [0u64; #limbs];
                 for i in 0..#limbs {
                     res[i] = u64::conditional_select(&a.0[i], &b.0[i], choice);
@@ -1197,7 +1197,7 @@ fn prime_field_impl(
 
         impl ::ff::Field for #name {
             /// Computes a uniformly random element using rejection sampling.
-            fn random(mut rng: impl ::rand_core::RngCore) -> Self {
+            fn random(mut rng: impl ::ff::derive::rand_core::RngCore) -> Self {
                 loop {
                     let mut tmp = {
                         let mut repr = [0u64; #limbs];
@@ -1250,7 +1250,7 @@ fn prime_field_impl(
                 ret
             }
 
-            fn invert(&self) -> ::subtle::CtOption<Self> {
+            fn invert(&self) -> ::ff::derive::subtle::CtOption<Self> {
                 #invert_impl
             }
 
@@ -1260,7 +1260,7 @@ fn prime_field_impl(
                 #squaring_impl
             }
 
-            fn sqrt(&self) -> ::subtle::CtOption<Self> {
+            fn sqrt(&self) -> ::ff::derive::subtle::CtOption<Self> {
                 #sqrt_impl
             }
         }
@@ -1295,7 +1295,7 @@ fn prime_field_impl(
                 let mut carry = 0;
 
                 for (a, b) in self.0.iter_mut().zip(other.0.iter()) {
-                    *a = ::ff::adc(*a, *b, &mut carry);
+                    *a = ::ff::derive::adc(*a, *b, &mut carry);
                 }
             }
 
@@ -1304,7 +1304,7 @@ fn prime_field_impl(
                 let mut borrow = 0;
 
                 for (a, b) in self.0.iter_mut().zip(other.0.iter()) {
-                    *a = ::ff::sbb(*a, *b, &mut borrow);
+                    *a = ::ff::derive::sbb(*a, *b, &mut borrow);
                 }
             }
 
