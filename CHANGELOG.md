@@ -13,6 +13,14 @@ and this library adheres to Rust's notion of
   `PrimeField` derive macro:
   - Re-exports of required crates.
   - `adc, mac, sbb` constant-time const helper functions.
+- `ff::Field::is_zero_vartime`
+- `ff::PrimeField::from_repr_vartime`
+
+### Changed
+- `ff::Field::is_zero` now returns `subtle::Choice`.
+- `ff::PrimeField::{is_odd, is_even}` now return `subtle::Choice`.
+- `ff::PrimeField::from_repr` now return `subtle::CtOption<Self>`.
+- `ff::PrimeField::from_str` has been renamed to `PrimeField::from_str_vartime`.
 
 ### Removed
 - `ff::{adc, mac_with_carry, sbb}` (replaced by `ff::derive::{adc, mac, sbb}`).

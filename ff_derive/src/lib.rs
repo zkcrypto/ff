@@ -67,12 +67,6 @@ impl ReprEndianness {
                 #read_repr
                 #name(inner)
             };
-
-            if r.is_valid() {
-                Some(r * R2)
-            } else {
-                None
-            }
         }
     }
 
@@ -1008,7 +1002,7 @@ fn prime_field_impl(
                 use ::ff::Field;
 
                 let mut ret = self;
-                if !ret.is_zero() {
+                if !ret.is_zero_vartime() {
                     let mut tmp = MODULUS_LIMBS;
                     tmp.sub_noborrow(&ret);
                     ret = tmp;
@@ -1139,8 +1133,32 @@ fn prime_field_impl(
         impl ::ff::PrimeField for #name {
             type Repr = #repr;
 
-            fn from_repr(r: #repr) -> Option<#name> {
+            fn from_repr(r: #repr) -> ::ff::derive::subtle::CtOption<#name> {
                 #from_repr_impl
+
+                // Try to subtract the modulus
+                let borrow = r.0.iter().zip(MODULUS_LIMBS.0.iter()).fold(0, |borrow, (a, b)| {
+                    ::ff::derive::sbb(*a, *b, borrow).1
+                });
+
+                // If the element is smaller than MODULUS then the
+                // subtraction will underflow, producing a borrow value
+                // of 0xffff...ffff. Otherwise, it'll be zero.
+                let is_some = ::ff::derive::subtle::Choice::from((borrow as u8) & 1);
+
+                // Convert to Montgomery form by computing
+                // (a.R^0 * R^2) / R = a.R
+                ::ff::derive::subtle::CtOption::new(r * &R2, is_some)
+            }
+
+            fn from_repr_vartime(r: #repr) -> Option<#name> {
+                #from_repr_impl
+
+                if r.is_valid() {
+                    Some(r * R2)
+                } else {
+                    None
+                }
             }
 
             fn to_repr(&self) -> #repr {
@@ -1148,13 +1166,15 @@ fn prime_field_impl(
             }
 
             #[inline(always)]
-            fn is_odd(&self) -> bool {
+            fn is_odd(&self) -> ::ff::derive::subtle::Choice {
                 let mut r = *self;
                 r.mont_reduce(
                     #mont_reduce_self_params
                 );
 
-                r.0[0] & 1 == 1
+                // TODO: This looks like a constant-time result, but r.mont_reduce() is
+                // currently implemented using variable-time code.
+                ::ff::derive::subtle::Choice::from((r.0[0] & 1) as u8)
             }
 
             const NUM_BITS: u32 = MODULUS_BITS;
@@ -1216,7 +1236,13 @@ fn prime_field_impl(
             }
 
             #[inline]
-            fn is_zero(&self) -> bool {
+            fn is_zero(&self) -> ::ff::derive::subtle::Choice {
+                use ::ff::derive::subtle::ConstantTimeEq;
+                self.ct_eq(&Self::zero())
+            }
+
+            #[inline]
+            fn is_zero_vartime(&self) -> bool {
                 self.0.iter().all(|&e| e == 0)
             }
 

@@ -25,7 +25,7 @@ use bitvec::{array::BitArray, order::Lsb0};
 use core::fmt;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use rand_core::RngCore;
-use subtle::{ConditionallySelectable, ConstantTimeEq, CtOption};
+use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 
 /// Bit representation of a field element.
 #[cfg(feature = "bits")]
@@ -69,7 +69,17 @@ pub trait Field:
     fn one() -> Self;
 
     /// Returns true iff this element is zero.
-    fn is_zero(&self) -> bool;
+    fn is_zero(&self) -> Choice;
+
+    /// Returns true iff this element is zero.
+    ///
+    /// # Security
+    ///
+    /// This method provides **no** constant-time guarantees. Implementors of the
+    /// `Field` trait **may** optimise this method using non-constant-time logic.
+    fn is_zero_vartime(&self) -> bool {
+        self.is_zero().into()
+    }
 
     /// Squares this element.
     #[must_use]
@@ -122,7 +132,11 @@ pub trait PrimeField: Field + From<u64> {
 
     /// Interpret a string of numbers as a (congruent) prime field element.
     /// Does not accept unnecessary leading zeroes or a blank string.
-    fn from_str(s: &str) -> Option<Self> {
+    ///
+    /// # Security
+    ///
+    /// This method provides **no** constant-time guarantees.
+    fn from_str_vartime(s: &str) -> Option<Self> {
         if s.is_empty() {
             return None;
         }
@@ -166,7 +180,22 @@ pub trait PrimeField: Field + From<u64> {
     ///
     /// The byte representation is interpreted with the same endianness as elements
     /// returned by [`PrimeField::to_repr`].
-    fn from_repr(_: Self::Repr) -> Option<Self>;
+    fn from_repr(repr: Self::Repr) -> CtOption<Self>;
+
+    /// Attempts to convert a byte representation of a field element into an element of
+    /// this prime field, failing if the input is not canonical (is not smaller than the
+    /// field's modulus).
+    ///
+    /// The byte representation is interpreted with the same endianness as elements
+    /// returned by [`PrimeField::to_repr`].
+    ///
+    /// # Security
+    ///
+    /// This method provides **no** constant-time guarantees. Implementors of the
+    /// `PrimeField` trait **may** optimise this method using non-constant-time logic.
+    fn from_repr_vartime(repr: Self::Repr) -> Option<Self> {
+        Self::from_repr(repr).into()
+    }
 
     /// Converts an element of the prime field into the standard byte representation for
     /// this field.
@@ -176,11 +205,11 @@ pub trait PrimeField: Field + From<u64> {
     fn to_repr(&self) -> Self::Repr;
 
     /// Returns true iff this element is odd.
-    fn is_odd(&self) -> bool;
+    fn is_odd(&self) -> Choice;
 
     /// Returns true iff this element is even.
     #[inline(always)]
-    fn is_even(&self) -> bool {
+    fn is_even(&self) -> Choice {
         !self.is_odd()
     }
 
