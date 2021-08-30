@@ -25,7 +25,7 @@ use bitvec::{array::BitArray, order::Lsb0};
 use core::fmt;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use rand_core::RngCore;
-use subtle::{ConditionallySelectable, CtOption};
+use subtle::{ConditionallySelectable, ConstantTimeEq, CtOption};
 
 /// Bit representation of a field element.
 #[cfg(feature = "bits")]
@@ -44,6 +44,7 @@ pub trait Field:
     + fmt::Debug
     + 'static
     + ConditionallySelectable
+    + ConstantTimeEq
     + Add<Output = Self>
     + Sub<Output = Self>
     + Mul<Output = Self>
@@ -117,7 +118,7 @@ pub trait Field:
 pub trait PrimeField: Field + From<u64> {
     /// The prime field can be converted back and forth into this binary
     /// representation.
-    type Repr: Default + AsRef<[u8]> + AsMut<[u8]>;
+    type Repr: Copy + Default + Send + Sync + 'static + AsRef<[u8]> + AsMut<[u8]>;
 
     /// Interpret a string of numbers as a (congruent) prime field element.
     /// Does not accept unnecessary leading zeroes or a blank string.
