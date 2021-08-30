@@ -267,6 +267,7 @@ pub mod derive {
     pub use {bitvec, byteorder, rand_core, subtle};
 }
 
+#[cfg(feature = "derive")]
 mod arith_impl {
     /// Computes `a - (b + borrow)`, returning the result and the new borrow.
     #[inline(always)]
