@@ -9,12 +9,13 @@ and this library adheres to Rust's notion of
 ### Added
 - `subtle::ConstantTimeEq` bound on `ff::Field`
 - `Copy + Send + Sync + 'static` bounds on `ff::PrimeField::Repr`
-- `ff::derive` module behind the `derive` feature flag, which re-exports the crates used
-  by the `PrimeField` derive macro.
+- `ff::derive` module behind the `derive` feature flag, containing dependencies for the
+  `PrimeField` derive macro:
+  - Re-exports of required crates.
+  - `adc, mac, sbb` constant-time const helper functions.
 
-### Changed
-- `ff::{adc, mac_with_carry, sbb}` have been moved into the `ff::derive` module, behind
-  the `derive` feature flag.
+### Removed
+- `ff::{adc, mac_with_carry, sbb}` (replaced by `ff::derive::{adc, mac, sbb}`).
 
 ## [0.10.1] - 2021-08-11
 ### Added

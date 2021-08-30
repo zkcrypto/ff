@@ -670,15 +670,14 @@ fn prime_field_impl(
                 let temp = get_temp(i);
                 gen.extend(quote! {
                     let k = #temp.wrapping_mul(INV);
-                    let mut carry = 0;
-                    ::ff::derive::mac_with_carry(#temp, k, MODULUS_LIMBS.0[0], &mut carry);
+                    let (_, carry) = ::ff::derive::mac(#temp, k, MODULUS_LIMBS.0[0], 0);
                 });
             }
 
             for j in 1..limbs {
                 let temp = get_temp(i + j);
                 gen.extend(quote! {
-                    #temp = ::ff::derive::mac_with_carry(#temp, k, MODULUS_LIMBS.0[#j], &mut carry);
+                    let (#temp, carry) = ::ff::derive::mac(#temp, k, MODULUS_LIMBS.0[#j], carry);
                 });
             }
 
@@ -686,17 +685,11 @@ fn prime_field_impl(
 
             if i == 0 {
                 gen.extend(quote! {
-                    #temp = ::ff::derive::adc(#temp, 0, &mut carry);
+                    let (#temp, carry2) = ::ff::derive::adc(#temp, 0, carry);
                 });
             } else {
                 gen.extend(quote! {
-                    #temp = ::ff::derive::adc(#temp, carry2, &mut carry);
-                });
-            }
-
-            if i != (limbs - 1) {
-                gen.extend(quote! {
-                    let carry2 = carry;
+                    let (#temp, carry2) = ::ff::derive::adc(#temp, carry2, carry);
                 });
             }
         }
@@ -718,18 +711,18 @@ fn prime_field_impl(
         if limbs > 1 {
             for i in 0..(limbs - 1) {
                 gen.extend(quote! {
-                    let mut carry = 0;
+                    let carry = 0;
                 });
 
                 for j in (i + 1)..limbs {
                     let temp = get_temp(i + j);
                     if i == 0 {
                         gen.extend(quote! {
-                            let #temp = ::ff::derive::mac_with_carry(0, #a.0[#i], #a.0[#j], &mut carry);
+                            let (#temp, carry) = ::ff::derive::mac(0, #a.0[#i], #a.0[#j], carry);
                         });
                     } else {
                         gen.extend(quote! {
-                            let #temp = ::ff::derive::mac_with_carry(#temp, #a.0[#i], #a.0[#j], &mut carry);
+                            let (#temp, carry) = ::ff::derive::mac(#temp, #a.0[#i], #a.0[#j], carry);
                         });
                     }
                 }
@@ -766,25 +759,21 @@ fn prime_field_impl(
             });
         }
 
-        gen.extend(quote! {
-            let mut carry = 0;
-        });
-
         for i in 0..limbs {
             let temp0 = get_temp(i * 2);
             let temp1 = get_temp(i * 2 + 1);
             if i == 0 {
                 gen.extend(quote! {
-                    let #temp0 = ::ff::derive::mac_with_carry(0, #a.0[#i], #a.0[#i], &mut carry);
+                    let (#temp0, carry) = ::ff::derive::mac(0, #a.0[#i], #a.0[#i], 0);
                 });
             } else {
                 gen.extend(quote! {
-                    let #temp0 = ::ff::derive::mac_with_carry(#temp0, #a.0[#i], #a.0[#i], &mut carry);
+                    let (#temp0, carry) = ::ff::derive::mac(#temp0, #a.0[#i], #a.0[#i], carry);
                 });
             }
 
             gen.extend(quote! {
-                let #temp1 = ::ff::derive::adc(#temp1, 0, &mut carry);
+                let (#temp1, carry) = ::ff::derive::adc(#temp1, 0, carry);
             });
         }
 
@@ -812,7 +801,7 @@ fn prime_field_impl(
 
         for i in 0..limbs {
             gen.extend(quote! {
-                let mut carry = 0;
+                let carry = 0;
             });
 
             for j in 0..limbs {
@@ -820,11 +809,11 @@ fn prime_field_impl(
 
                 if i == 0 {
                     gen.extend(quote! {
-                        let #temp = ::ff::derive::mac_with_carry(0, #a.0[#i], #b.0[#j], &mut carry);
+                        let (#temp, carry) = ::ff::derive::mac(0, #a.0[#i], #b.0[#j], carry);
                     });
                 } else {
                     gen.extend(quote! {
-                        let #temp = ::ff::derive::mac_with_carry(#temp, #a.0[#i], #b.0[#j], &mut carry);
+                        let (#temp, carry) = ::ff::derive::mac(#temp, #a.0[#i], #b.0[#j], carry);
                     });
                 }
             }
@@ -1295,7 +1284,9 @@ fn prime_field_impl(
                 let mut carry = 0;
 
                 for (a, b) in self.0.iter_mut().zip(other.0.iter()) {
-                    *a = ::ff::derive::adc(*a, *b, &mut carry);
+                    let (new_a, new_carry) = ::ff::derive::adc(*a, *b, carry);
+                    *a = new_a;
+                    carry = new_carry;
                 }
             }
 
@@ -1304,7 +1295,9 @@ fn prime_field_impl(
                 let mut borrow = 0;
 
                 for (a, b) in self.0.iter_mut().zip(other.0.iter()) {
-                    *a = ::ff::derive::sbb(*a, *b, &mut borrow);
+                    let (new_a, new_borrow) = ::ff::derive::sbb(*a, *b, borrow);
+                    *a = new_a;
+                    borrow = new_borrow;
                 }
             }
 
