@@ -4,7 +4,10 @@
 
 ## Disclaimers
 
-* This library does not provide constant-time guarantees.
+* This library does not provide constant-time guarantees. The traits enable downstream
+  users to expose constant-time logic, but `#[derive(PrimeField)]` in particular does not
+  generate constant-time code (even for trait methods that return constant-time-compatible
+  values).
 
 ## Usage
 

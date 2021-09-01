@@ -67,12 +67,6 @@ impl ReprEndianness {
                 #read_repr
                 #name(inner)
             };
-
-            if r.is_valid() {
-                Some(r * R2)
-            } else {
-                None
-            }
         }
     }
 
@@ -670,15 +664,14 @@ fn prime_field_impl(
                 let temp = get_temp(i);
                 gen.extend(quote! {
                     let k = #temp.wrapping_mul(INV);
-                    let mut carry = 0;
-                    ::ff::derive::mac_with_carry(#temp, k, MODULUS_LIMBS.0[0], &mut carry);
+                    let (_, carry) = ::ff::derive::mac(#temp, k, MODULUS_LIMBS.0[0], 0);
                 });
             }
 
             for j in 1..limbs {
                 let temp = get_temp(i + j);
                 gen.extend(quote! {
-                    #temp = ::ff::derive::mac_with_carry(#temp, k, MODULUS_LIMBS.0[#j], &mut carry);
+                    let (#temp, carry) = ::ff::derive::mac(#temp, k, MODULUS_LIMBS.0[#j], carry);
                 });
             }
 
@@ -686,17 +679,11 @@ fn prime_field_impl(
 
             if i == 0 {
                 gen.extend(quote! {
-                    #temp = ::ff::derive::adc(#temp, 0, &mut carry);
+                    let (#temp, carry2) = ::ff::derive::adc(#temp, 0, carry);
                 });
             } else {
                 gen.extend(quote! {
-                    #temp = ::ff::derive::adc(#temp, carry2, &mut carry);
-                });
-            }
-
-            if i != (limbs - 1) {
-                gen.extend(quote! {
-                    let carry2 = carry;
+                    let (#temp, carry2) = ::ff::derive::adc(#temp, carry2, carry);
                 });
             }
         }
@@ -718,18 +705,18 @@ fn prime_field_impl(
         if limbs > 1 {
             for i in 0..(limbs - 1) {
                 gen.extend(quote! {
-                    let mut carry = 0;
+                    let carry = 0;
                 });
 
                 for j in (i + 1)..limbs {
                     let temp = get_temp(i + j);
                     if i == 0 {
                         gen.extend(quote! {
-                            let #temp = ::ff::derive::mac_with_carry(0, #a.0[#i], #a.0[#j], &mut carry);
+                            let (#temp, carry) = ::ff::derive::mac(0, #a.0[#i], #a.0[#j], carry);
                         });
                     } else {
                         gen.extend(quote! {
-                            let #temp = ::ff::derive::mac_with_carry(#temp, #a.0[#i], #a.0[#j], &mut carry);
+                            let (#temp, carry) = ::ff::derive::mac(#temp, #a.0[#i], #a.0[#j], carry);
                         });
                     }
                 }
@@ -766,25 +753,21 @@ fn prime_field_impl(
             });
         }
 
-        gen.extend(quote! {
-            let mut carry = 0;
-        });
-
         for i in 0..limbs {
             let temp0 = get_temp(i * 2);
             let temp1 = get_temp(i * 2 + 1);
             if i == 0 {
                 gen.extend(quote! {
-                    let #temp0 = ::ff::derive::mac_with_carry(0, #a.0[#i], #a.0[#i], &mut carry);
+                    let (#temp0, carry) = ::ff::derive::mac(0, #a.0[#i], #a.0[#i], 0);
                 });
             } else {
                 gen.extend(quote! {
-                    let #temp0 = ::ff::derive::mac_with_carry(#temp0, #a.0[#i], #a.0[#i], &mut carry);
+                    let (#temp0, carry) = ::ff::derive::mac(#temp0, #a.0[#i], #a.0[#i], carry);
                 });
             }
 
             gen.extend(quote! {
-                let #temp1 = ::ff::derive::adc(#temp1, 0, &mut carry);
+                let (#temp1, carry) = ::ff::derive::adc(#temp1, 0, carry);
             });
         }
 
@@ -812,7 +795,7 @@ fn prime_field_impl(
 
         for i in 0..limbs {
             gen.extend(quote! {
-                let mut carry = 0;
+                let carry = 0;
             });
 
             for j in 0..limbs {
@@ -820,11 +803,11 @@ fn prime_field_impl(
 
                 if i == 0 {
                     gen.extend(quote! {
-                        let #temp = ::ff::derive::mac_with_carry(0, #a.0[#i], #b.0[#j], &mut carry);
+                        let (#temp, carry) = ::ff::derive::mac(0, #a.0[#i], #b.0[#j], carry);
                     });
                 } else {
                     gen.extend(quote! {
-                        let #temp = ::ff::derive::mac_with_carry(#temp, #a.0[#i], #b.0[#j], &mut carry);
+                        let (#temp, carry) = ::ff::derive::mac(#temp, #a.0[#i], #b.0[#j], carry);
                     });
                 }
             }
@@ -1019,7 +1002,7 @@ fn prime_field_impl(
                 use ::ff::Field;
 
                 let mut ret = self;
-                if !ret.is_zero() {
+                if !ret.is_zero_vartime() {
                     let mut tmp = MODULUS_LIMBS;
                     tmp.sub_noborrow(&ret);
                     ret = tmp;
@@ -1150,8 +1133,32 @@ fn prime_field_impl(
         impl ::ff::PrimeField for #name {
             type Repr = #repr;
 
-            fn from_repr(r: #repr) -> Option<#name> {
+            fn from_repr(r: #repr) -> ::ff::derive::subtle::CtOption<#name> {
                 #from_repr_impl
+
+                // Try to subtract the modulus
+                let borrow = r.0.iter().zip(MODULUS_LIMBS.0.iter()).fold(0, |borrow, (a, b)| {
+                    ::ff::derive::sbb(*a, *b, borrow).1
+                });
+
+                // If the element is smaller than MODULUS then the
+                // subtraction will underflow, producing a borrow value
+                // of 0xffff...ffff. Otherwise, it'll be zero.
+                let is_some = ::ff::derive::subtle::Choice::from((borrow as u8) & 1);
+
+                // Convert to Montgomery form by computing
+                // (a.R^0 * R^2) / R = a.R
+                ::ff::derive::subtle::CtOption::new(r * &R2, is_some)
+            }
+
+            fn from_repr_vartime(r: #repr) -> Option<#name> {
+                #from_repr_impl
+
+                if r.is_valid() {
+                    Some(r * R2)
+                } else {
+                    None
+                }
             }
 
             fn to_repr(&self) -> #repr {
@@ -1159,13 +1166,15 @@ fn prime_field_impl(
             }
 
             #[inline(always)]
-            fn is_odd(&self) -> bool {
+            fn is_odd(&self) -> ::ff::derive::subtle::Choice {
                 let mut r = *self;
                 r.mont_reduce(
                     #mont_reduce_self_params
                 );
 
-                r.0[0] & 1 == 1
+                // TODO: This looks like a constant-time result, but r.mont_reduce() is
+                // currently implemented using variable-time code.
+                ::ff::derive::subtle::Choice::from((r.0[0] & 1) as u8)
             }
 
             const NUM_BITS: u32 = MODULUS_BITS;
@@ -1227,7 +1236,13 @@ fn prime_field_impl(
             }
 
             #[inline]
-            fn is_zero(&self) -> bool {
+            fn is_zero(&self) -> ::ff::derive::subtle::Choice {
+                use ::ff::derive::subtle::ConstantTimeEq;
+                self.ct_eq(&Self::zero())
+            }
+
+            #[inline]
+            fn is_zero_vartime(&self) -> bool {
                 self.0.iter().all(|&e| e == 0)
             }
 
@@ -1295,7 +1310,9 @@ fn prime_field_impl(
                 let mut carry = 0;
 
                 for (a, b) in self.0.iter_mut().zip(other.0.iter()) {
-                    *a = ::ff::derive::adc(*a, *b, &mut carry);
+                    let (new_a, new_carry) = ::ff::derive::adc(*a, *b, carry);
+                    *a = new_a;
+                    carry = new_carry;
                 }
             }
 
@@ -1304,7 +1321,9 @@ fn prime_field_impl(
                 let mut borrow = 0;
 
                 for (a, b) in self.0.iter_mut().zip(other.0.iter()) {
-                    *a = ::ff::derive::sbb(*a, *b, &mut borrow);
+                    let (new_a, new_borrow) = ::ff::derive::sbb(*a, *b, borrow);
+                    *a = new_a;
+                    borrow = new_borrow;
                 }
             }
 

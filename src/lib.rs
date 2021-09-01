@@ -25,7 +25,7 @@ use bitvec::{array::BitArray, order::Lsb0};
 use core::fmt;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use rand_core::RngCore;
-use subtle::{ConditionallySelectable, ConstantTimeEq, CtOption};
+use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 
 /// Bit representation of a field element.
 #[cfg(feature = "bits")]
@@ -69,7 +69,19 @@ pub trait Field:
     fn one() -> Self;
 
     /// Returns true iff this element is zero.
-    fn is_zero(&self) -> bool;
+    fn is_zero(&self) -> Choice {
+        self.ct_eq(&Self::zero())
+    }
+
+    /// Returns true iff this element is zero.
+    ///
+    /// # Security
+    ///
+    /// This method provides **no** constant-time guarantees. Implementors of the
+    /// `Field` trait **may** optimise this method using non-constant-time logic.
+    fn is_zero_vartime(&self) -> bool {
+        self.is_zero().into()
+    }
 
     /// Squares this element.
     #[must_use]
@@ -122,7 +134,11 @@ pub trait PrimeField: Field + From<u64> {
 
     /// Interpret a string of numbers as a (congruent) prime field element.
     /// Does not accept unnecessary leading zeroes or a blank string.
-    fn from_str(s: &str) -> Option<Self> {
+    ///
+    /// # Security
+    ///
+    /// This method provides **no** constant-time guarantees.
+    fn from_str_vartime(s: &str) -> Option<Self> {
         if s.is_empty() {
             return None;
         }
@@ -166,7 +182,22 @@ pub trait PrimeField: Field + From<u64> {
     ///
     /// The byte representation is interpreted with the same endianness as elements
     /// returned by [`PrimeField::to_repr`].
-    fn from_repr(_: Self::Repr) -> Option<Self>;
+    fn from_repr(repr: Self::Repr) -> CtOption<Self>;
+
+    /// Attempts to convert a byte representation of a field element into an element of
+    /// this prime field, failing if the input is not canonical (is not smaller than the
+    /// field's modulus).
+    ///
+    /// The byte representation is interpreted with the same endianness as elements
+    /// returned by [`PrimeField::to_repr`].
+    ///
+    /// # Security
+    ///
+    /// This method provides **no** constant-time guarantees. Implementors of the
+    /// `PrimeField` trait **may** optimise this method using non-constant-time logic.
+    fn from_repr_vartime(repr: Self::Repr) -> Option<Self> {
+        Self::from_repr(repr).into()
+    }
 
     /// Converts an element of the prime field into the standard byte representation for
     /// this field.
@@ -176,11 +207,11 @@ pub trait PrimeField: Field + From<u64> {
     fn to_repr(&self) -> Self::Repr;
 
     /// Returns true iff this element is odd.
-    fn is_odd(&self) -> bool;
+    fn is_odd(&self) -> Choice;
 
     /// Returns true iff this element is even.
     #[inline(always)]
-    fn is_even(&self) -> bool {
+    fn is_even(&self) -> Choice {
         !self.is_odd()
     }
 
@@ -238,37 +269,26 @@ pub mod derive {
     pub use {bitvec, byteorder, rand_core, subtle};
 }
 
+#[cfg(feature = "derive")]
 mod arith_impl {
-    /// Calculate a - b - borrow, returning the result and modifying
-    /// the borrow value.
+    /// Computes `a - (b + borrow)`, returning the result and the new borrow.
     #[inline(always)]
-    pub fn sbb(a: u64, b: u64, borrow: &mut u64) -> u64 {
-        let tmp = (1u128 << 64) + u128::from(a) - u128::from(b) - u128::from(*borrow);
-
-        *borrow = if tmp >> 64 == 0 { 1 } else { 0 };
-
-        tmp as u64
+    pub const fn sbb(a: u64, b: u64, borrow: u64) -> (u64, u64) {
+        let ret = (a as u128).wrapping_sub((b as u128) + ((borrow >> 63) as u128));
+        (ret as u64, (ret >> 64) as u64)
     }
 
-    /// Calculate a + b + carry, returning the sum and modifying the
-    /// carry value.
+    /// Computes `a + b + carry`, returning the result and the new carry over.
     #[inline(always)]
-    pub fn adc(a: u64, b: u64, carry: &mut u64) -> u64 {
-        let tmp = u128::from(a) + u128::from(b) + u128::from(*carry);
-
-        *carry = (tmp >> 64) as u64;
-
-        tmp as u64
+    pub const fn adc(a: u64, b: u64, carry: u64) -> (u64, u64) {
+        let ret = (a as u128) + (b as u128) + (carry as u128);
+        (ret as u64, (ret >> 64) as u64)
     }
 
-    /// Calculate a + (b * c) + carry, returning the least significant digit
-    /// and setting carry to the most significant digit.
+    /// Computes `a + (b * c) + carry`, returning the result and the new carry over.
     #[inline(always)]
-    pub fn mac_with_carry(a: u64, b: u64, c: u64, carry: &mut u64) -> u64 {
-        let tmp = (u128::from(a)) + u128::from(b) * u128::from(c) + u128::from(*carry);
-
-        *carry = (tmp >> 64) as u64;
-
-        tmp as u64
+    pub const fn mac(a: u64, b: u64, c: u64, carry: u64) -> (u64, u64) {
+        let ret = (a as u128) + ((b as u128) * (c as u128)) + (carry as u128);
+        (ret as u64, (ret >> 64) as u64)
     }
 }
