@@ -6,6 +6,8 @@ and this library adheres to Rust's notion of
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.11.0] - 2021-09-01
 ### Added
 - `subtle::ConstantTimeEq` bound on `ff::Field`
 - `Copy + Send + Sync + 'static` bounds on `ff::PrimeField::Repr`
