@@ -69,7 +69,9 @@ pub trait Field:
     fn one() -> Self;
 
     /// Returns true iff this element is zero.
-    fn is_zero(&self) -> Choice;
+    fn is_zero(&self) -> Choice {
+        self.ct_eq(&Self::zero())
+    }
 
     /// Returns true iff this element is zero.
     ///
