@@ -7,7 +7,7 @@ and this library adheres to Rust's notion of
 
 ## [Unreleased]
 
-## [0.11.0] - 2021-09-01
+## [0.11.0] - 2021-09-02
 ### Added
 - `subtle::ConstantTimeEq` bound on `ff::Field`
 - `Copy + Send + Sync + 'static` bounds on `ff::PrimeField::Repr`
