@@ -3,7 +3,7 @@
 // Catch documentation errors caused by code changes.
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![deny(broken_intra_doc_links)]
+#![deny(rustdoc::broken_intra_doc_links)]
 #![forbid(unsafe_code)]
 
 #[cfg(feature = "alloc")]
