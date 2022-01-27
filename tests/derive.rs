@@ -60,6 +60,7 @@ fn batch_inversion() {
     }
 
     // Test BatchInvert trait
+    #[cfg(feature = "alloc")]
     {
         use ff::BatchInvert;
         let mut elements = values.clone();
