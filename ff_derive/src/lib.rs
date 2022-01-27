@@ -894,33 +894,30 @@ fn prime_field_impl(
     let from_repr_impl = endianness.from_repr(name, limbs);
     let to_repr_impl = endianness.to_repr(quote! {#repr}, &mont_reduce_self_params, limbs);
 
-    let _generate_bitvec_impl = false;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "bits")] {
+            let to_le_bits_impl = ReprEndianness::Little.to_repr(
+                quote! {::ff::derive::bitvec::array::BitArray::new},
+                &mont_reduce_self_params,
+                limbs,
+            );
 
-    #[cfg(feature = "bits")]
-    let _generate_bitvec_impl = true;
+            let prime_field_bits_impl = quote! {
+                impl ::ff::PrimeFieldBits for #name {
+                    type ReprBits = REPR_BITS;
 
-    let prime_field_bits_impl = if _generate_bitvec_impl {
-        let to_le_bits_impl = ReprEndianness::Little.to_repr(
-            quote! {::ff::derive::bitvec::array::BitArray::new},
-            &mont_reduce_self_params,
-            limbs,
-        );
+                    fn to_le_bits(&self) -> ::ff::FieldBits<REPR_BITS> {
+                        #to_le_bits_impl
+                    }
 
-        quote! {
-            impl ::ff::PrimeFieldBits for #name {
-                type ReprBits = REPR_BITS;
-
-                fn to_le_bits(&self) -> ::ff::FieldBits<REPR_BITS> {
-                    #to_le_bits_impl
+                    fn char_le_bits() -> ::ff::FieldBits<REPR_BITS> {
+                        ::ff::FieldBits::new(MODULUS)
+                    }
                 }
-
-                fn char_le_bits() -> ::ff::FieldBits<REPR_BITS> {
-                    ::ff::FieldBits::new(MODULUS)
-                }
-            }
+            };
+        } else {
+            let prime_field_bits_impl = quote! {};
         }
-    } else {
-        quote! {}
     };
 
     let top_limb_index = limbs - 1;
