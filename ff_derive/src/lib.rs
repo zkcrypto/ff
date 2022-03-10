@@ -252,11 +252,16 @@ fn validate_struct(ast: &syn::DeriveInput, limbs: usize) -> Option<proc_macro2::
     }
 
     // The array's length should be a literal int equal to `limbs`.
-    let lit_int = match match &arr.len {
-        syn::Expr::Lit(expr_lit) => match &expr_lit.lit {
-            syn::Lit::Int(lit_int) => Some(lit_int),
+    let expr_lit = match &arr.len {
+        syn::Expr::Lit(expr_lit) => Some(&expr_lit.lit),
+        syn::Expr::Group(expr_group) => match &*expr_group.expr {
+            syn::Expr::Lit(expr_lit) => Some(&expr_lit.lit),
             _ => None,
-        },
+        }
+        _ => None
+    };
+    let lit_int = match match expr_lit {
+        Some(syn::Lit::Int(lit_int)) => Some(lit_int),
         _ => None,
     } {
         Some(x) => x,

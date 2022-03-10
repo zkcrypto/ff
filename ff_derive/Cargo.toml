@@ -22,7 +22,7 @@ num-traits = "0.2"
 num-integer = "0.1"
 proc-macro2 = "1"
 quote = "1"
-syn = "1"
+syn = { version = "1", features = ["full"] }
 
 [badges]
 maintenance = { status = "passively-maintained" }
