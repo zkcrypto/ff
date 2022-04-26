@@ -87,6 +87,74 @@ fn from_u128() {
 }
 
 #[test]
+fn sum_of_products() {
+    use ff::{Field, PrimeField};
+
+    let one = Bls381K12Scalar::one();
+
+    // [1, 2, 3, 4]
+    let values = {
+        let mut iter = (0..4).scan(one, |acc, _| {
+            let ret = *acc;
+            *acc += &one;
+            Some(ret)
+        });
+        [
+            iter.next().unwrap(),
+            iter.next().unwrap(),
+            iter.next().unwrap(),
+            iter.next().unwrap(),
+        ]
+    };
+
+    // We'll pair each value with itself.
+    let expected = Bls381K12Scalar::from_str_vartime("30").unwrap();
+
+    assert_eq!(Bls381K12Scalar::sum_of_products(values, values), expected,);
+}
+
+#[test]
+fn sum_of_products_iter() {
+    use ff::{Field, PrimeField};
+
+    let one = Bls381K12Scalar::one();
+
+    // [1, 2, 3, 4]
+    let values: Vec<_> = (0..4)
+        .scan(one, |acc, _| {
+            let ret = *acc;
+            *acc += &one;
+            Some(ret)
+        })
+        .collect();
+
+    // We'll pair each value with itself.
+    let expected = Bls381K12Scalar::from_str_vartime("30").unwrap();
+
+    // Check that we can produce the necessary input from two iterators.
+    assert_eq!(
+        // Directly produces (&v, &v)
+        Bls381K12Scalar::sum_of_products_iter(values.iter().zip(values.iter())),
+        expected,
+    );
+
+    // Check that we can produce the necessary input from an iterator of values.
+    assert_eq!(
+        // Maps &v to (&v, &v)
+        Bls381K12Scalar::sum_of_products_iter(values.iter().map(|v| (v, v))),
+        expected,
+    );
+
+    // Check that we can produce the necessary input from an iterator of tuples.
+    let tuples: Vec<_> = values.into_iter().map(|v| (v, v)).collect();
+    assert_eq!(
+        // Maps &(a, b) to (&a, &b)
+        Bls381K12Scalar::sum_of_products_iter(tuples.iter().map(|(a, b)| (a, b))),
+        expected,
+    );
+}
+
+#[test]
 fn batch_inversion() {
     use ff::{BatchInverter, Field};
 
