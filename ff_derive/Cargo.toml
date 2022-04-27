@@ -12,6 +12,10 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/zkcrypto/ff"
 edition = "2018"
 
+[features]
+# enabled when generating bitvec code utilizing the version of ff's bitvec
+bits = []
+
 [lib]
 proc-macro = true
 
@@ -23,6 +27,7 @@ num-integer = "0.1"
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "1", features = ["full"] }
+cfg-if = "1"
 
 [badges]
 maintenance = { status = "passively-maintained" }

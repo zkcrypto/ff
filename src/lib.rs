@@ -266,7 +266,11 @@ pub trait PrimeFieldBits: PrimeField {
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 pub mod derive {
     pub use crate::arith_impl::*;
-    pub use {bitvec, byteorder, rand_core, subtle};
+
+    pub use {byteorder, rand_core, subtle};
+
+    #[cfg(feature = "bits")]
+    pub use bitvec;
 }
 
 #[cfg(feature = "derive")]
