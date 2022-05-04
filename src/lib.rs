@@ -3,7 +3,7 @@
 // Catch documentation errors caused by code changes.
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![deny(broken_intra_doc_links)]
+#![deny(rustdoc::broken_intra_doc_links)]
 #![forbid(unsafe_code)]
 
 #[cfg(feature = "alloc")]
@@ -30,7 +30,7 @@ use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 /// Bit representation of a field element.
 #[cfg(feature = "bits")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
-pub type FieldBits<V> = BitArray<Lsb0, V>;
+pub type FieldBits<V> = BitArray<V, Lsb0>;
 
 /// This trait represents an element of a field.
 pub trait Field:
