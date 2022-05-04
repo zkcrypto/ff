@@ -1,6 +1,6 @@
 [package]
 name = "ff"
-version = "0.11.1"
+version = "0.12.0"
 authors = [
     "Sean Bowe <ewillbefull@gmail.com>",
     "Jack Grigg <thestr4d@gmail.com>",
@@ -11,12 +11,12 @@ documentation = "https://docs.rs/ff/"
 homepage = "https://github.com/zkcrypto/ff"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/zkcrypto/ff"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 bitvec = { version = "1", default-features = false, optional = true }
 byteorder = { version = "1", default-features = false, optional = true }
-ff_derive = { version = "0.11.1", path = "ff_derive", optional = true }
+ff_derive = { version = "0.12", path = "ff_derive", optional = true }
 rand_core = { version = "0.6", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 
