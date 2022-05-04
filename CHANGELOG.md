@@ -7,6 +7,18 @@ and this library adheres to Rust's notion of
 
 ## [Unreleased]
 
+## [0.11.1] - 2022-05-04
+
+### Fixed
+- `ff_derive` procedural macro can now be invoked within regular macros.
+- Previously, `ff_derive`'s procedural macro would generate implementations of
+  `PrimeFieldBits` even when the `bits` crate feature was disabled. `ff_derive`
+  can now be used without a dependency on `bitvec` by disabling feature
+  features. The new crate feature `derive_bits` can be used to force the
+  generation of `PrimeFieldBits` implementations. This new crate feature will be
+  removed once our MSRV is at least 1.60 and we have access to [weak dependency
+  features](https://blog.rust-lang.org/2022/04/07/Rust-1.60.0.html#new-syntax-for-cargo-features).
+
 ## [0.11.0] - 2021-09-02
 ### Added
 - `subtle::ConstantTimeEq` bound on `ff::Field`
