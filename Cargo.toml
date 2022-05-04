@@ -1,6 +1,6 @@
 [package]
 name = "ff"
-version = "0.11.0"
+version = "0.11.1"
 authors = [
     "Sean Bowe <ewillbefull@gmail.com>",
     "Jack Grigg <thestr4d@gmail.com>",
@@ -16,7 +16,7 @@ edition = "2018"
 [dependencies]
 bitvec = { version = "0.22", default-features = false, optional = true }
 byteorder = { version = "1", default-features = false, optional = true }
-ff_derive = { version = "0.11", path = "ff_derive", optional = true }
+ff_derive = { version = "0.11.1", path = "ff_derive", optional = true }
 rand_core = { version = "0.6", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 
