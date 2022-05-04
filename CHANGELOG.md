@@ -7,6 +7,13 @@ and this library adheres to Rust's notion of
 
 ## [Unreleased]
 
+## [0.12.0] - 2022-05-04
+
+### Changed
+
+- MSRV is now 1.56.0.
+- Bumped `bitvec` to 1.0.
+
 ## [0.11.1] - 2022-05-04
 
 ### Fixed
