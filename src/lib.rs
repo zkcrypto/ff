@@ -215,6 +215,9 @@ pub trait PrimeField: Field + From<u64> {
         !self.is_odd()
     }
 
+    /// Returns the field characteristic; the modulus.
+    fn char() -> Self::Repr;
+
     /// How many bits are needed to represent an element of this field.
     const NUM_BITS: u32;
 

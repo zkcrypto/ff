@@ -1203,6 +1203,10 @@ fn prime_field_impl(
                 ::ff::derive::subtle::Choice::from((r.0[0] & 1) as u8)
             }
 
+            fn char() -> #repr {
+                MODULUS
+            }
+
             const NUM_BITS: u32 = MODULUS_BITS;
 
             const CAPACITY: u32 = Self::NUM_BITS - 1;
