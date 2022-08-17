@@ -1296,6 +1296,13 @@ fn prime_field_impl(
             }
         }
 
+        #[cfg(feature = "gpu")]
+        impl ec_gpu::GpuName for #name {
+           fn name() -> String {
+               ec_gpu::name!()
+           }
+        }
+
         impl #name {
             /// Compares two elements in native representation. This is only used
             /// internally.

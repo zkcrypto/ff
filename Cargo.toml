@@ -16,6 +16,7 @@ edition = "2021"
 [dependencies]
 bitvec = { version = "1", default-features = false, optional = true }
 byteorder = { version = "1", default-features = false, optional = true }
+ec-gpu = { version = "0.2.0", optional = true }
 ff_derive = { version = "0.12", path = "ff_derive", optional = true }
 rand_core = { version = "0.6", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
@@ -29,6 +30,7 @@ std = ["alloc"]
 # with MSRV 1.60 this could be merged into bits with ff_derive?/bits
 # see PR#72 for more information.
 derive_bits = ["bits", "ff_derive/bits"]
+gpu = ["ec-gpu"]
 
 [[test]]
 name = "derive"

@@ -32,7 +32,83 @@ use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 #[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
 pub type FieldBits<V> = BitArray<V, Lsb0>;
 
+/// The trait body of the [`Field`] trait.
+///
+/// It's put into a macro as a different combination of supertraits is needed based on compile-time
+/// features. There currently is no valid Rust syntax to do conditional compilation on those
+/// trait definitions.
+macro_rules! field_trait_body {
+    () => {
+        /// Returns an element chosen uniformly at random using a user-provided RNG.
+        fn random(rng: impl RngCore) -> Self;
+
+        /// Returns the zero element of the field, the additive identity.
+        fn zero() -> Self;
+
+        /// Returns the one element of the field, the multiplicative identity.
+        fn one() -> Self;
+
+        /// Returns true iff this element is zero.
+        fn is_zero(&self) -> Choice {
+            self.ct_eq(&Self::zero())
+        }
+
+        /// Returns true iff this element is zero.
+        ///
+        /// # Security
+        ///
+        /// This method provides **no** constant-time guarantees. Implementors of the
+        /// `Field` trait **may** optimise this method using non-constant-time logic.
+        fn is_zero_vartime(&self) -> bool {
+            self.is_zero().into()
+        }
+
+        /// Squares this element.
+        #[must_use]
+        fn square(&self) -> Self;
+
+        /// Cubes this element.
+        #[must_use]
+        fn cube(&self) -> Self {
+            self.square() * self
+        }
+
+        /// Doubles this element.
+        #[must_use]
+        fn double(&self) -> Self;
+
+        /// Computes the multiplicative inverse of this element,
+        /// failing if the element is zero.
+        fn invert(&self) -> CtOption<Self>;
+
+        /// Returns the square root of the field element, if it is
+        /// quadratic residue.
+        fn sqrt(&self) -> CtOption<Self>;
+
+        /// Exponentiates `self` by `exp`, where `exp` is a little-endian order
+        /// integer exponent.
+        ///
+        /// **This operation is variable time with respect to the exponent.** If the
+        /// exponent is fixed, this operation is effectively constant time.
+        fn pow_vartime<S: AsRef<[u64]>>(&self, exp: S) -> Self {
+            let mut res = Self::one();
+            for e in exp.as_ref().iter().rev() {
+                for i in (0..64).rev() {
+                    res = res.square();
+
+                    if ((*e >> i) & 1) == 1 {
+                        res.mul_assign(self);
+                    }
+                }
+            }
+
+            res
+        }
+    };
+}
+
 /// This trait represents an element of a field.
+#[cfg(not(feature = "gpu"))]
 pub trait Field:
     Sized
     + Eq
@@ -59,71 +135,39 @@ pub trait Field:
     + for<'a> AddAssign<&'a Self>
     + for<'a> SubAssign<&'a Self>
 {
-    /// Returns an element chosen uniformly at random using a user-provided RNG.
-    fn random(rng: impl RngCore) -> Self;
+    field_trait_body! {}
+}
 
-    /// Returns the zero element of the field, the additive identity.
-    fn zero() -> Self;
-
-    /// Returns the one element of the field, the multiplicative identity.
-    fn one() -> Self;
-
-    /// Returns true iff this element is zero.
-    fn is_zero(&self) -> Choice {
-        self.ct_eq(&Self::zero())
-    }
-
-    /// Returns true iff this element is zero.
-    ///
-    /// # Security
-    ///
-    /// This method provides **no** constant-time guarantees. Implementors of the
-    /// `Field` trait **may** optimise this method using non-constant-time logic.
-    fn is_zero_vartime(&self) -> bool {
-        self.is_zero().into()
-    }
-
-    /// Squares this element.
-    #[must_use]
-    fn square(&self) -> Self;
-
-    /// Cubes this element.
-    #[must_use]
-    fn cube(&self) -> Self {
-        self.square() * self
-    }
-
-    /// Doubles this element.
-    #[must_use]
-    fn double(&self) -> Self;
-
-    /// Computes the multiplicative inverse of this element,
-    /// failing if the element is zero.
-    fn invert(&self) -> CtOption<Self>;
-
-    /// Returns the square root of the field element, if it is
-    /// quadratic residue.
-    fn sqrt(&self) -> CtOption<Self>;
-
-    /// Exponentiates `self` by `exp`, where `exp` is a little-endian order
-    /// integer exponent.
-    ///
-    /// **This operation is variable time with respect to the exponent.** If the
-    /// exponent is fixed, this operation is effectively constant time.
-    fn pow_vartime<S: AsRef<[u64]>>(&self, exp: S) -> Self {
-        let mut res = Self::one();
-        for e in exp.as_ref().iter().rev() {
-            for i in (0..64).rev() {
-                res = res.square();
-
-                if ((*e >> i) & 1) == 1 {
-                    res.mul_assign(self);
-                }
-            }
-        }
-
-        res
-    }
+/// This trait represents an element of a field.
+#[cfg(feature = "gpu")]
+pub trait Field:
+    Sized
+    + Eq
+    + Copy
+    + Clone
+    + Default
+    + Send
+    + Sync
+    + fmt::Debug
+    + 'static
+    + ConditionallySelectable
+    + ConstantTimeEq
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Neg<Output = Self>
+    + for<'a> Add<&'a Self, Output = Self>
+    + for<'a> Mul<&'a Self, Output = Self>
+    + for<'a> Sub<&'a Self, Output = Self>
+    + MulAssign
+    + AddAssign
+    + SubAssign
+    + for<'a> MulAssign<&'a Self>
+    + for<'a> AddAssign<&'a Self>
+    + for<'a> SubAssign<&'a Self>
+    + ec_gpu::GpuName
+{
+    field_trait_body! {}
 }
 
 /// This represents an element of a prime field.
