@@ -1211,6 +1211,8 @@ fn prime_field_impl(
                 GENERATOR
             }
 
+            const MULTIPLICATIVE_GENERATOR: Self = GENERATOR;
+
             const S: u32 = S;
 
             fn root_of_unity() -> Self {
@@ -1250,10 +1252,14 @@ fn prime_field_impl(
                 #name([0; #limbs])
             }
 
+            const ZERO: Self = #name([0; #limbs]);
+
             #[inline]
             fn one() -> Self {
                 R
             }
+
+            const ONE: Self = R;
 
             #[inline]
             fn is_zero(&self) -> ::ff::derive::subtle::Choice {
