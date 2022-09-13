@@ -20,6 +20,9 @@ ff_derive = { version = "0.12", path = "ff_derive", optional = true }
 rand_core = { version = "0.6", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 
+[dev-dependencies]
+rand = "0.8"
+
 [features]
 default = ["bits", "std"]
 alloc = []
