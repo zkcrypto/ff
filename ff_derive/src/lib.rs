@@ -1233,7 +1233,11 @@ fn prime_field_impl(
                     };
 
                     // Mask away the unused most-significant bits.
-                    tmp.0.as_mut()[#top_limb_index] &= 0xffffffffffffffff >> REPR_SHAVE_BITS;
+                    // Note: In some edge cases, `REPR_SHAVE_BITS` could be 64, in which case
+                    // `0xfff... >> REPR_SHAVE_BITS` overflows. So use `checked_shr` instead.
+                    // This is always sufficient because we will have at most one spare limb
+                    // to accommodate values of up to twice the modulus.
+                    tmp.0.as_mut()[#top_limb_index] &= 0xffffffffffffffffu64.checked_shr(REPR_SHAVE_BITS).unwrap_or(0);
 
                     if tmp.is_valid() {
                         return tmp

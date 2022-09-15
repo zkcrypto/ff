@@ -21,6 +21,22 @@ mod fermat {
     struct Fermat65537Field([u64; 1]);
 }
 
+mod full_limbs {
+    #[derive(PrimeField)]
+    #[PrimeFieldModulus = "39402006196394479212279040100143613805079739270465446667948293404245721771496870329047266088258938001861606973112319"]
+    #[PrimeFieldGenerator = "19"]
+    #[PrimeFieldReprEndianness = "little"]
+    struct F384p([u64; 7]);
+
+    #[test]
+    fn random_masking_does_not_overflow() {
+        use ff::Field;
+        use rand::rngs::OsRng;
+
+        let _ = F384p::random(OsRng);
+    }
+}
+
 #[test]
 fn batch_inversion() {
     use ff::{BatchInverter, Field};
