@@ -65,11 +65,13 @@ pub trait Field:
     /// Returns the zero element of the field, the additive identity.
     fn zero() -> Self;
 
+    /// The zero element of the field, as a constant.
     const ZERO: Self;
 
     /// Returns the one element of the field, the multiplicative identity.
     fn one() -> Self;
 
+    /// The one element of the field, as a constant.
     const ONE: Self;
 
     /// Returns true iff this element is zero.
@@ -238,6 +240,7 @@ pub trait PrimeField: Field + From<u64> {
     /// [SageMath]: https://www.sagemath.org/
     fn multiplicative_generator() -> Self;
 
+    /// The multiplicative generator, as a constant.
     const MULTIPLICATIVE_GENERATOR: Self;
 
     /// An integer `s` satisfying the equation `2^s * t = modulus - 1` with `t` odd.
