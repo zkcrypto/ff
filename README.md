@@ -38,8 +38,7 @@ ff = { version = "0.12", features = ["derive"] }
 And then use the macro like so:
 
 ```rust
-#[macro_use]
-extern crate ff;
+use ff::PrimeField;
 
 #[derive(PrimeField)]
 #[PrimeFieldModulus = "52435875175126190479447740508185965837690552500527637822603658699938581184513"]
@@ -49,6 +48,39 @@ struct Fp([u64; 4]);
 ```
 
 And that's it! `Fp` now implements `Field` and `PrimeField`.
+
+### `build.rs`
+Using the `derive(PrimeField)` functionality can slow down compile times. As an alternative, the
+`ff` library's code generation functionality can be invoked via a build script.
+
+First, add the dependencies:
+```toml
+[dependencies]
+ff = { version = "0.12", features = ["derive"] }
+
+[build-dependencies]
+ff_codegen = "0.12"
+```
+
+Then write the `build.rs` file:
+```rust
+fn main() {
+    let path = std::path::Path::new(&std::env::var("OUT_DIR").unwrap()).join("codegen.rs");
+    std::fs::write(&path, ff_codegen::PrimeFieldCodegen {
+        ident: "Fp",
+        is_pub: false,
+        modulus: "52435875175126190479447740508185965837690552500527637822603658699938581184513",
+        generator: "7",
+        endianness: ff_codegen::ReprEndianness::Little,
+    }.to_string()).unwrap();
+    println!("cargo:rerun-if-changed=build.rs");
+}
+```
+
+And, finally, in the module you want to include the code in:
+```rust
+include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
+```
 
 ## Minimum Supported Rust Version
 
