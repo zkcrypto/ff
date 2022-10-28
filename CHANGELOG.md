@@ -6,6 +6,8 @@ and this library adheres to Rust's notion of
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `ff::Field::pow`
 
 ## [0.12.1] - 2022-10-28
 ### Fixed
