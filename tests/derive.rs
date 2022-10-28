@@ -41,7 +41,7 @@ mod full_limbs {
 fn batch_inversion() {
     use ff::{BatchInverter, Field};
 
-    let one = Bls381K12Scalar::one();
+    let one = Bls381K12Scalar::ONE;
 
     // [1, 2, 3, 4]
     let values: Vec<_> = (0..4)
@@ -55,7 +55,7 @@ fn batch_inversion() {
     // Test BatchInverter::invert_with_external_scratch
     {
         let mut elements = values.clone();
-        let mut scratch_space = vec![Bls381K12Scalar::zero(); elements.len()];
+        let mut scratch_space = vec![Bls381K12Scalar::ZERO; elements.len()];
         BatchInverter::invert_with_external_scratch(&mut elements, &mut scratch_space);
         for (a, a_inv) in values.iter().zip(elements.into_iter()) {
             assert_eq!(*a * a_inv, one);

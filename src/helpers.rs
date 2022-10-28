@@ -29,7 +29,7 @@ pub fn sqrt_tonelli_shanks<F: PrimeField, S: AsRef<[u64]>>(f: &F, tm1d2: S) -> C
     let mut b = x * w;
 
     // Initialize z as the 2^S root of unity.
-    let mut z = F::root_of_unity();
+    let mut z = F::ROOT_OF_UNITY;
 
     for max_v in (1..=F::S).rev() {
         let mut k = 1;
@@ -41,7 +41,7 @@ pub fn sqrt_tonelli_shanks<F: PrimeField, S: AsRef<[u64]>>(f: &F, tm1d2: S) -> C
         // - for k < j <= v, we square z in order to calculate ω.
         // - for j > v, we do nothing.
         for j in 2..max_v {
-            let b2k_is_one = b2k.ct_eq(&F::one());
+            let b2k_is_one = b2k.ct_eq(&F::ONE);
             let squared = F::conditional_select(&b2k, &z, b2k_is_one).square();
             b2k = F::conditional_select(&squared, &b2k, b2k_is_one);
             let new_z = F::conditional_select(&z, &squared, b2k_is_one);
@@ -51,7 +51,7 @@ pub fn sqrt_tonelli_shanks<F: PrimeField, S: AsRef<[u64]>>(f: &F, tm1d2: S) -> C
         }
 
         let result = x * z;
-        x = F::conditional_select(&result, &x, b.ct_eq(&F::one()));
+        x = F::conditional_select(&result, &x, b.ct_eq(&F::ONE));
         z = z.square();
         b *= z;
         v = k;
@@ -76,7 +76,7 @@ pub fn sqrt_tonelli_shanks<F: PrimeField, S: AsRef<[u64]>>(f: &F, tm1d2: S) -> C
 ///
 /// where $G_S$ is a non-square.
 ///
-/// For this method, $G_S$ is currently [`PrimeField::root_of_unity`], a generator of the
+/// For this method, $G_S$ is currently [`PrimeField::ROOT_OF_UNITY`], a generator of the
 /// order $2^S$ subgroup. Users of this crate should not rely on this generator being
 /// fixed; it may be changed in future crate versions to simplify the implementation of
 /// the SSWU hash-to-curve algorithm.
@@ -108,8 +108,8 @@ pub fn sqrt_ratio_generic<F: PrimeField>(num: &F, div: &F) -> (Choice, F) {
     // based on whether a is square, but for the boolean output we need to handle the
     // num != 0 && div == 0 case specifically.
 
-    let a = div.invert().unwrap_or_else(F::zero) * num;
-    let b = a * F::root_of_unity();
+    let a = div.invert().unwrap_or(F::ZERO) * num;
+    let b = a * F::ROOT_OF_UNITY;
     let sqrt_a = a.sqrt();
     let sqrt_b = b.sqrt();
 
