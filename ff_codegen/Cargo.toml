@@ -1,12 +1,12 @@
 [package]
-name = "ff_derive"
-version = "0.12.1"
+name = "ff_codegen"
+version = "0.12.0"
 authors = [
-  "Sean Bowe <ewillbefull@gmail.com>",
-  "Jack Grigg <thestr4d@gmail.com>",
+    "Sean Bowe <ewillbefull@gmail.com>",
+    "Jack Grigg <thestr4d@gmail.com>",
 ]
-description = "Procedural macro library used to build custom prime field implementations"
-documentation = "https://docs.rs/ff-derive/"
+description = "Code generator library used to build custom prime field implementations"
+documentation = "https://docs.rs/ff-common/"
 homepage = "https://github.com/zkcrypto/ff"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/zkcrypto/ff"
@@ -14,16 +14,17 @@ edition = "2021"
 
 [features]
 # enabled when generating bitvec code utilizing the version of ff's bitvec
-bits = ["ff_codegen/bits"]
-
-[lib]
-proc-macro = true
+bits = []
 
 [dependencies]
+addchain = "0.2"
 num-bigint = "0.3"
+num-traits = "0.2"
+num-integer = "0.1"
 proc-macro2 = "1"
+quote = "1"
 syn = { version = "1", features = ["full"] }
-ff_codegen = { path = "../ff_codegen" }
+cfg-if = "1"
 
 [badges]
 maintenance = { status = "passively-maintained" }
