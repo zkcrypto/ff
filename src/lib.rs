@@ -12,6 +12,8 @@ extern crate alloc;
 mod batch;
 pub use batch::*;
 
+pub mod helpers;
+
 #[cfg(feature = "derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 pub use ff_derive::PrimeField;
@@ -101,9 +103,37 @@ pub trait Field:
     /// failing if the element is zero.
     fn invert(&self) -> CtOption<Self>;
 
+    /// Computes:
+    ///
+    /// - $(\textsf{true}, \sqrt{\textsf{num}/\textsf{div}})$, if $\textsf{num}$ and
+    ///   $\textsf{div}$ are nonzero and $\textsf{num}/\textsf{div}$ is a square in the
+    ///   field;
+    /// - $(\textsf{true}, 0)$, if $\textsf{num}$ is zero;
+    /// - $(\textsf{false}, 0)$, if $\textsf{num}$ is nonzero and $\textsf{div}$ is zero;
+    /// - $(\textsf{false}, \sqrt{G_S \cdot \textsf{num}/\textsf{div}})$, if
+    ///   $\textsf{num}$ and $\textsf{div}$ are nonzero and $\textsf{num}/\textsf{div}$ is
+    ///   a nonsquare in the field;
+    ///
+    /// where $G_S$ is a non-square.
+    ///
+    /// # Warnings
+    ///
+    /// - The choice of root from `sqrt` is unspecified.
+    /// - The value of $G_S$ is unspecified, and cannot be assumed to have any specific
+    ///   value in a generic context.
+    fn sqrt_ratio(num: &Self, div: &Self) -> (Choice, Self);
+
+    /// Equivalent to `Self::sqrt_ratio(self, one())`.
+    fn sqrt_alt(&self) -> (Choice, Self) {
+        Self::sqrt_ratio(self, &Self::one())
+    }
+
     /// Returns the square root of the field element, if it is
     /// quadratic residue.
-    fn sqrt(&self) -> CtOption<Self>;
+    fn sqrt(&self) -> CtOption<Self> {
+        let (is_square, res) = self.sqrt_alt();
+        CtOption::new(res, is_square)
+    }
 
     /// Exponentiates `self` by `exp`, where `exp` is a little-endian order integer
     /// exponent.

@@ -257,8 +257,8 @@ fn validate_struct(ast: &syn::DeriveInput, limbs: usize) -> Option<proc_macro2::
         syn::Expr::Group(expr_group) => match &*expr_group.expr {
             syn::Expr::Lit(expr_lit) => Some(&expr_lit.lit),
             _ => None,
-        }
-        _ => None
+        },
+        _ => None,
     };
     let lit_int = match match expr_lit {
         Some(syn::Lit::Int(lit_int)) => Some(lit_int),
@@ -1293,6 +1293,10 @@ fn prime_field_impl(
             fn square(&self) -> Self
             {
                 #squaring_impl
+            }
+
+            fn sqrt_ratio(num: &Self, div: &Self) -> (::ff::derive::subtle::Choice, Self) {
+                ::ff::helpers::sqrt_ratio_generic(num, div)
             }
 
             fn sqrt(&self) -> ::ff::derive::subtle::CtOption<Self> {
