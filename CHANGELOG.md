@@ -7,15 +7,18 @@ and this library adheres to Rust's notion of
 
 ## [Unreleased]
 
-## [0.12.0] - 2022-05-04
+## [0.12.1] - 2022-10-28
+### Fixed
+- `ff_derive` previously generated a `Field::random` implementation that would
+  overflow for fields that needed a full 64-bit spare limb.
 
+## [0.12.0] - 2022-05-04
 ### Changed
 
 - MSRV is now 1.56.0.
 - Bumped `bitvec` to 1.0.
 
 ## [0.11.1] - 2022-05-04
-
 ### Fixed
 - `ff_derive` procedural macro can now be invoked within regular macros.
 - Previously, `ff_derive`'s procedural macro would generate implementations of
