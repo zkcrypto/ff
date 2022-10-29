@@ -124,6 +124,21 @@ pub trait Field:
 
         res
     }
+
+    /// Returns `pairs.into_iter().fold(Self::zero(), |acc, (a_i, b_i)| acc + a_i * b_i)`.
+    ///
+    /// This computes the "dot product" or "inner product" `a ⋅ b` of two equal-length
+    /// sequences of elements `a` and `b`, such that `pairs = a.zip(b)`.
+    ///
+    /// The provided implementation of this trait method uses the direct calculation given
+    /// above. Implementations of `Field` should override this to use more efficient
+    /// methods that take advantage of their internal representation, such as interleaving
+    /// or sharing modular reductions.
+    fn sum_of_products<'a, I: IntoIterator<Item = (&'a Self, &'a Self)> + Clone>(pairs: I) -> Self {
+        pairs
+            .into_iter()
+            .fold(Self::zero(), |acc, (a_i, b_i)| acc + (*a_i * b_i))
+    }
 }
 
 /// This represents an element of a prime field.
