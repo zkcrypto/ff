@@ -124,14 +124,18 @@ pub trait Field:
     fn sqrt_ratio(num: &Self, div: &Self) -> (Choice, Self);
 
     /// Equivalent to `Self::sqrt_ratio(self, one())`.
+    ///
+    /// The provided method is implemented in terms of [`Self::sqrt_ratio`].
     fn sqrt_alt(&self) -> (Choice, Self) {
         Self::sqrt_ratio(self, &Self::one())
     }
 
     /// Returns the square root of the field element, if it is
     /// quadratic residue.
+    ///
+    /// The provided method is implemented in terms of [`Self::sqrt_ratio`].
     fn sqrt(&self) -> CtOption<Self> {
-        let (is_square, res) = self.sqrt_alt();
+        let (is_square, res) = Self::sqrt_ratio(self, &Self::one());
         CtOption::new(res, is_square)
     }
 
