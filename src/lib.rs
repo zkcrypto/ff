@@ -12,6 +12,8 @@ extern crate alloc;
 mod batch;
 pub use batch::*;
 
+pub mod helpers;
+
 #[cfg(feature = "derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 pub use ff_derive::PrimeField;
@@ -101,15 +103,71 @@ pub trait Field:
     /// failing if the element is zero.
     fn invert(&self) -> CtOption<Self>;
 
+    /// Computes:
+    ///
+    /// - $(\textsf{true}, \sqrt{\textsf{num}/\textsf{div}})$, if $\textsf{num}$ and
+    ///   $\textsf{div}$ are nonzero and $\textsf{num}/\textsf{div}$ is a square in the
+    ///   field;
+    /// - $(\textsf{true}, 0)$, if $\textsf{num}$ is zero;
+    /// - $(\textsf{false}, 0)$, if $\textsf{num}$ is nonzero and $\textsf{div}$ is zero;
+    /// - $(\textsf{false}, \sqrt{G_S \cdot \textsf{num}/\textsf{div}})$, if
+    ///   $\textsf{num}$ and $\textsf{div}$ are nonzero and $\textsf{num}/\textsf{div}$ is
+    ///   a nonsquare in the field;
+    ///
+    /// where $G_S$ is a non-square.
+    ///
+    /// # Warnings
+    ///
+    /// - The choice of root from `sqrt` is unspecified.
+    /// - The value of $G_S$ is unspecified, and cannot be assumed to have any specific
+    ///   value in a generic context.
+    fn sqrt_ratio(num: &Self, div: &Self) -> (Choice, Self);
+
+    /// Equivalent to `Self::sqrt_ratio(self, one())`.
+    ///
+    /// The provided method is implemented in terms of [`Self::sqrt_ratio`].
+    fn sqrt_alt(&self) -> (Choice, Self) {
+        Self::sqrt_ratio(self, &Self::one())
+    }
+
     /// Returns the square root of the field element, if it is
     /// quadratic residue.
-    fn sqrt(&self) -> CtOption<Self>;
-
-    /// Exponentiates `self` by `exp`, where `exp` is a little-endian order
-    /// integer exponent.
     ///
-    /// **This operation is variable time with respect to the exponent.** If the
-    /// exponent is fixed, this operation is effectively constant time.
+    /// The provided method is implemented in terms of [`Self::sqrt_ratio`].
+    fn sqrt(&self) -> CtOption<Self> {
+        let (is_square, res) = Self::sqrt_ratio(self, &Self::one());
+        CtOption::new(res, is_square)
+    }
+
+    /// Exponentiates `self` by `exp`, where `exp` is a little-endian order integer
+    /// exponent.
+    ///
+    /// # Guarantees
+    ///
+    /// This operation is constant time with respect to `self`, for all exponents with the
+    /// same number of digits (`exp.as_ref().len()`). It is variable time with respect to
+    /// the number of digits in the exponent.
+    fn pow<S: AsRef<[u64]>>(&self, exp: S) -> Self {
+        let mut res = Self::one();
+        for e in exp.as_ref().iter().rev() {
+            for i in (0..64).rev() {
+                res = res.square();
+                let mut tmp = res;
+                tmp *= self;
+                res.conditional_assign(&tmp, (((*e >> i) & 1) as u8).into());
+            }
+        }
+        res
+    }
+
+    /// Exponentiates `self` by `exp`, where `exp` is a little-endian order integer
+    /// exponent.
+    ///
+    /// # Guarantees
+    ///
+    /// **This operation is variable time with respect to `self`, for all exponent.** If
+    /// the exponent is fixed, this operation is effectively constant time. However, for
+    /// stronger constant-time guarantees, [`Field::pow`] should be used.
     fn pow_vartime<S: AsRef<[u64]>>(&self, exp: S) -> Self {
         let mut res = Self::one();
         for e in exp.as_ref().iter().rev() {

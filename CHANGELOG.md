@@ -6,6 +6,20 @@ and this library adheres to Rust's notion of
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `ff::Field::pow`
+- `ff::Field::{sqrt_ratio, sqrt_alt}`
+- `ff::helpers`:
+  - `sqrt_tonelli_shanks`
+  - `sqrt_ratio_generic`
+
+### Changed
+- `ff::Field::sqrt` is now a provided method that uses the `Field::sqrt_ratio`
+  method. Implementors of the `Field` trait can choose to implement
+  `Field::sqrt_ratio` and use the provided `ff::Field::sqrt` method, especially
+  if it is more efficient in practice, or they can keep their own implementation
+  of `Field::sqrt` and implement `Field::sqrt_ratio` in terms of that
+  implementation using the `ff::helpers::sqrt_ratio_generic` helper function.
 
 ## [0.12.1] - 2022-10-28
 ### Fixed
