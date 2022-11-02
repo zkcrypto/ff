@@ -7,8 +7,10 @@ and this library adheres to Rust's notion of
 
 ## [Unreleased]
 ### Added
+- `ff::Field::{ZERO, ONE}`
 - `ff::Field::pow`
 - `ff::Field::{sqrt_ratio, sqrt_alt}`
+- `ff::PrimeField::{MULTIPLICATIVE_GENERATOR, ROOT_OF_UNITY}`
 - `ff::helpers`:
   - `sqrt_tonelli_shanks`
   - `sqrt_ratio_generic`
@@ -20,6 +22,11 @@ and this library adheres to Rust's notion of
   if it is more efficient in practice, or they can keep their own implementation
   of `Field::sqrt` and implement `Field::sqrt_ratio` in terms of that
   implementation using the `ff::helpers::sqrt_ratio_generic` helper function.
+
+### Removed
+- `ff::Field::{zero, one}` (use `ff::Field::{ZERO, ONE}` instead).
+- `ff::PrimeField::{multiplicative_generator, root_of_unity}` (use
+  `ff::PrimeField::{MULTIPLICATIVE_GENERATOR, ROOT_OF_UNITY}` instead).
 
 ## [0.12.1] - 2022-10-28
 ### Fixed
