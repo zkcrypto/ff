@@ -10,6 +10,7 @@ and this library adheres to Rust's notion of
 - `ff::Field::{ZERO, ONE}`
 - `ff::Field::pow`
 - `ff::Field::{sqrt_ratio, sqrt_alt}`
+- `core::iter::{Sum, Product}` bounds on `ff::Field`
 - `ff::PrimeField::{MULTIPLICATIVE_GENERATOR, ROOT_OF_UNITY}`
 - `ff::helpers`:
   - `sqrt_tonelli_shanks`

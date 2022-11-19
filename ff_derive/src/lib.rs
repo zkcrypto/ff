@@ -839,10 +839,7 @@ fn prime_field_impl(
 
     /// Generates an implementation of multiplicative inversion within the target prime
     /// field.
-    fn inv_impl(
-        a: proc_macro2::TokenStream,
-        modulus: &BigUint,
-    ) -> proc_macro2::TokenStream {
+    fn inv_impl(a: proc_macro2::TokenStream, modulus: &BigUint) -> proc_macro2::TokenStream {
         // Addition chain for p - 2
         let mod_minus_2 = pow_fixed::generate(&a, modulus - BigUint::from(2u64));
 
@@ -1152,6 +1149,22 @@ fn prime_field_impl(
             fn mul_assign(&mut self, other: #name)
             {
                 self.mul_assign(&other);
+            }
+        }
+
+        impl<T: ::core::borrow::Borrow<#name>> ::core::iter::Sum<T> for #name {
+            fn sum<I: Iterator<Item = T>>(iter: I) -> Self {
+                use ::ff::Field;
+
+                iter.fold(Self::ZERO, |acc, item| acc + item.borrow())
+            }
+        }
+
+        impl<T: ::core::borrow::Borrow<#name>> ::core::iter::Product<T> for #name {
+            fn product<I: Iterator<Item = T>>(iter: I) -> Self {
+                use ::ff::Field;
+
+                iter.fold(Self::ONE, |acc, item| acc * item.borrow())
             }
         }
 
