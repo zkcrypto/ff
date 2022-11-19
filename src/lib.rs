@@ -47,19 +47,19 @@ pub trait Field:
     + 'static
     + ConditionallySelectable
     + ConstantTimeEq
+    + Neg<Output = Self>
     + Add<Output = Self>
     + Sub<Output = Self>
     + Mul<Output = Self>
-    + Neg<Output = Self>
     + for<'a> Add<&'a Self, Output = Self>
-    + for<'a> Mul<&'a Self, Output = Self>
     + for<'a> Sub<&'a Self, Output = Self>
-    + MulAssign
+    + for<'a> Mul<&'a Self, Output = Self>
     + AddAssign
     + SubAssign
-    + for<'a> MulAssign<&'a Self>
+    + MulAssign
     + for<'a> AddAssign<&'a Self>
     + for<'a> SubAssign<&'a Self>
+    + for<'a> MulAssign<&'a Self>
 {
     /// The zero element of the field, the additive identity.
     const ZERO: Self;
