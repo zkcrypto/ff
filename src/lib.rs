@@ -24,8 +24,11 @@ pub use bitvec::view::BitViewSized;
 
 #[cfg(feature = "bits")]
 use bitvec::{array::BitArray, order::Lsb0};
+
 use core::fmt;
+use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+
 use rand_core::RngCore;
 use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 
@@ -47,19 +50,23 @@ pub trait Field:
     + 'static
     + ConditionallySelectable
     + ConstantTimeEq
+    + Neg<Output = Self>
     + Add<Output = Self>
     + Sub<Output = Self>
     + Mul<Output = Self>
-    + Neg<Output = Self>
+    + Sum
+    + Product
     + for<'a> Add<&'a Self, Output = Self>
-    + for<'a> Mul<&'a Self, Output = Self>
     + for<'a> Sub<&'a Self, Output = Self>
-    + MulAssign
+    + for<'a> Mul<&'a Self, Output = Self>
+    + for<'a> Sum<&'a Self>
+    + for<'a> Product<&'a Self>
     + AddAssign
     + SubAssign
-    + for<'a> MulAssign<&'a Self>
+    + MulAssign
     + for<'a> AddAssign<&'a Self>
     + for<'a> SubAssign<&'a Self>
+    + for<'a> MulAssign<&'a Self>
 {
     /// The zero element of the field, the additive identity.
     const ZERO: Self;
