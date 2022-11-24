@@ -497,7 +497,13 @@ fn prime_field_constants_and_sqrt(
     }
 
     // Compute 2^s root of unity given the generator
-    let root_of_unity = biguint_to_u64_vec(to_mont(exp(generator.clone(), &t, &modulus)), limbs);
+    let root_of_unity = exp(generator.clone(), &t, &modulus);
+    let root_of_unity_inv = biguint_to_u64_vec(to_mont(invert(root_of_unity.clone())), limbs);
+    let root_of_unity = biguint_to_u64_vec(to_mont(root_of_unity), limbs);
+    let delta = biguint_to_u64_vec(
+        to_mont(exp(generator.clone(), &(BigUint::one() << s), &modulus)),
+        limbs,
+    );
     let generator = biguint_to_u64_vec(to_mont(generator), limbs);
 
     let sqrt_impl =
@@ -637,6 +643,12 @@ fn prime_field_constants_and_sqrt(
 
             /// 2^s root of unity computed by GENERATOR^t
             const ROOT_OF_UNITY: #name = #name(#root_of_unity);
+
+            /// (2^s)^{-1} mod m
+            const ROOT_OF_UNITY_INV: #name = #name(#root_of_unity_inv);
+
+            /// GENERATOR^{2^s}
+            const DELTA: #name = #name(#delta);
         },
         sqrt_impl,
     )
@@ -1236,6 +1248,10 @@ fn prime_field_impl(
             const S: u32 = S;
 
             const ROOT_OF_UNITY: Self = ROOT_OF_UNITY;
+
+            const ROOT_OF_UNITY_INV: Self = ROOT_OF_UNITY_INV;
+
+            const DELTA: Self = DELTA;
         }
 
         #prime_field_bits_impl

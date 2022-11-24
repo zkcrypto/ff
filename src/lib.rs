@@ -297,7 +297,7 @@ pub trait PrimeField: Field + From<u64> {
     /// It can be calculated using [SageMath] as `GF(modulus).primitive_element()`.
     ///
     /// Implementations of this trait MUST ensure that this is the generator used to
-    /// derive `Self::root_of_unity`.
+    /// derive `Self::ROOT_OF_UNITY`.
     ///
     /// [SageMath]: https://www.sagemath.org/
     const MULTIPLICATIVE_GENERATOR: Self;
@@ -313,6 +313,15 @@ pub trait PrimeField: Field + From<u64> {
     /// It can be calculated by exponentiating `Self::MULTIPLICATIVE_GENERATOR` by `t`,
     /// where `t = (modulus - 1) >> Self::S`.
     const ROOT_OF_UNITY: Self;
+
+    /// Inverse of [`Self::ROOT_OF_UNITY`].
+    const ROOT_OF_UNITY_INV: Self;
+
+    /// Generator of the `t-order` multiplicative subgroup.
+    ///
+    /// It can be calculated by exponentiating [`Self::MULTIPLICATIVE_GENERATOR`] by `2^s`,
+    /// where `s` is [`Self::S`].
+    const DELTA: Self;
 }
 
 /// This represents the bits of an element of a prime field.

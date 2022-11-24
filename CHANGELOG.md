@@ -12,7 +12,10 @@ and this library adheres to Rust's notion of
 - `ff::Field::{sqrt_ratio, sqrt_alt}`
 - `core::iter::{Sum, Product}` bounds on `ff::Field`
 - `ff::PrimeField::TWO_INV`
-- `ff::PrimeField::{MULTIPLICATIVE_GENERATOR, ROOT_OF_UNITY}`
+- Constants related to multiplicative generators:
+  - `ff::PrimeField::MULTIPLICATIVE_GENERATOR`
+  - `ff::PrimeField::{ROOT_OF_UNITY, ROOT_OF_UNITY_INV}`
+  - `ff::PrimeField::DELTA`
 - `ff::helpers`:
   - `sqrt_tonelli_shanks`
   - `sqrt_ratio_generic`
