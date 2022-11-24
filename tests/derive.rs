@@ -70,6 +70,18 @@ fn constants() {
 }
 
 #[test]
+fn from_u128() {
+    use ff::{Field, PrimeField};
+
+    assert_eq!(Bls381K12Scalar::from_u128(1), Bls381K12Scalar::ONE);
+    assert_eq!(Bls381K12Scalar::from_u128(2), Bls381K12Scalar::from(2));
+    assert_eq!(
+        Bls381K12Scalar::from_u128(u128::MAX),
+        Bls381K12Scalar::from_str_vartime("340282366920938463463374607431768211455").unwrap(),
+    );
+}
+
+#[test]
 fn batch_inversion() {
     use ff::{BatchInverter, Field};
 

@@ -241,6 +241,26 @@ pub trait PrimeField: Field + From<u64> {
         Some(res)
     }
 
+    /// Obtains a field element congruent to the integer `v`.
+    ///
+    /// For fields where `Self::CAPACITY >= 128`, this is injective and will produce a
+    /// unique field element.
+    ///
+    /// For fields where `Self::CAPACITY < 128`, this is surjective; some field elements
+    /// will be produced by multiple values of `v`.
+    ///
+    /// If you want to deterministically sample a field element representing a value, use
+    /// [`FromUniformBytes`] instead.
+    fn from_u128(v: u128) -> Self {
+        let lower = v as u64;
+        let upper = (v >> 64) as u64;
+        let mut tmp = Self::from(upper);
+        for _ in 0..64 {
+            tmp = tmp.double();
+        }
+        tmp + Self::from(lower)
+    }
+
     /// Attempts to convert a byte representation of a field element into an element of
     /// this prime field, failing if the input is not canonical (is not smaller than the
     /// field's modulus).
