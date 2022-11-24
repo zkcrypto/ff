@@ -350,6 +350,83 @@ pub trait PrimeField: Field + From<u64> {
     const DELTA: Self;
 }
 
+/// Trait for constructing a [`PrimeField`] element from a fixed-length uniform byte
+/// array.
+///
+/// "Uniform" means that the byte array's contents must be indistinguishable from the
+/// [discrete uniform distribution]. Suitable byte arrays can be obtained:
+/// - from a cryptographically-secure randomness source (which makes this constructor
+///   equivalent to [`Field::random`]).
+/// - from a cryptographic hash function output, which enables a "random" field element to
+///   be selected deterministically. This is the primary use case for `FromUniformBytes`.
+///
+/// The length `N` of the byte array is chosen by the trait implementer such that the loss
+/// of uniformity in the mapping from byte arrays to field elements is cryptographically
+/// negligible.
+///
+/// [discrete uniform distribution]: https://en.wikipedia.org/wiki/Discrete_uniform_distribution
+///
+/// # Examples
+///
+/// ```
+/// # #[cfg(feature = "derive")] {
+/// # // Fake this so we don't actually need a dev-dependency on bls12_381.
+/// # mod bls12_381 {
+/// #     use ff::{Field, PrimeField};
+/// #
+/// #     #[derive(PrimeField)]
+/// #     #[PrimeFieldModulus = "52435875175126190479447740508185965837690552500527637822603658699938581184513"]
+/// #     #[PrimeFieldGenerator = "7"]
+/// #     #[PrimeFieldReprEndianness = "little"]
+/// #     pub struct Scalar([u64; 4]);
+/// #
+/// #     impl ff::FromUniformBytes<64> for Scalar {
+/// #         fn from_uniform_bytes(_bytes: &[u8; 64]) -> Self {
+/// #             // Fake impl for doctest
+/// #             Scalar::ONE
+/// #         }
+/// #     }
+/// # }
+/// #
+/// use blake2b_simd::blake2b;
+/// use bls12_381::Scalar;
+/// use ff::FromUniformBytes;
+///
+/// // `bls12_381::Scalar` implements `FromUniformBytes<64>`, and BLAKE2b (by default)
+/// // produces a 64-byte hash.
+/// let hash = blake2b(b"Some message");
+/// let val = Scalar::from_uniform_bytes(hash.as_array());
+/// # }
+/// ```
+///
+/// # Implementing `FromUniformBytes`
+///
+/// [`Self::from_uniform_bytes`] should always be implemented by interpreting the provided
+/// byte array as the little endian encoding of an integer, and then reducing that integer
+/// modulo the field modulus.
+///
+/// For security, `N` must be chosen so that `N * 8 >= Self::NUM_BITS + 128`. A larger
+/// value of `N` may be chosen for convenience; for example, for a field with a 255-bit
+/// modulus, `N = 64` is convenient as it matches the output length of several common
+/// cryptographic hash functions (such as SHA-512 and BLAKE2b).
+///
+/// ## Trait design
+///
+/// This trait exists because `PrimeField::from_uniform_bytes([u8; N])` cannot currently
+/// exist (trait methods cannot use associated constants in the const positions of their
+/// type signature, and we do not want `PrimeField` to require a generic const parameter).
+/// However, this has the side-effect that `FromUniformBytes` can be implemented multiple
+/// times for different values of `N`. Most implementations of [`PrimeField`] should only
+/// need to implement `FromUniformBytes` trait for one value of `N` (chosen following the
+/// above considerations); if you find yourself needing to implement it multiple times,
+/// please [let us know about your use case](https://github.com/zkcrypto/ff/issues/new) so
+/// we can take it into consideration for future evolutions of the `ff` traits.
+pub trait FromUniformBytes<const N: usize>: PrimeField {
+    /// Returns a field element that is congruent to the provided little endian byte
+    /// representation of an integer.
+    fn from_uniform_bytes(bytes: &[u8; N]) -> Self;
+}
+
 /// This represents the bits of an element of a prime field.
 #[cfg(feature = "bits")]
 #[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
