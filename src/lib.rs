@@ -191,7 +191,7 @@ pub trait Field:
     }
 }
 
-/// This represents an element of a prime field.
+/// This represents an element of a non-binary prime field.
 pub trait PrimeField: Field + From<u64> {
     /// The prime field can be converted back and forth into this binary
     /// representation.
@@ -287,6 +287,9 @@ pub trait PrimeField: Field + From<u64> {
     ///
     /// This is usually `Self::NUM_BITS - 1`.
     const CAPACITY: u32;
+
+    /// Inverse of $2$ in the field.
+    const TWO_INV: Self;
 
     /// A fixed multiplicative generator of `modulus - 1` order. This element must also be
     /// a quadratic nonresidue.

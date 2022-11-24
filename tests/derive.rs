@@ -38,6 +38,16 @@ mod full_limbs {
 }
 
 #[test]
+fn constants() {
+    use ff::{Field, PrimeField};
+
+    assert_eq!(
+        Bls381K12Scalar::from(2) * Bls381K12Scalar::TWO_INV,
+        Bls381K12Scalar::ONE,
+    );
+}
+
+#[test]
 fn batch_inversion() {
     use ff::{BatchInverter, Field};
 

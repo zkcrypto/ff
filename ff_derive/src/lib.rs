@@ -479,6 +479,14 @@ fn prime_field_constants_and_sqrt(
 
     // Compute R = 2**(64 * limbs) mod m
     let r = (BigUint::one() << (limbs * 64)) % modulus;
+    let to_mont = |v| (v * &r) % modulus;
+
+    let two = BigUint::from_str("2").unwrap();
+    let p_minus_2 = modulus - &two;
+    let invert = |v| exp(v, &p_minus_2, &modulus);
+
+    // 2^-1 mod m
+    let two_inv = biguint_to_u64_vec(to_mont(invert(two)), limbs);
 
     // modulus - 1 = 2^s * t
     let mut s: u32 = 0;
@@ -489,9 +497,8 @@ fn prime_field_constants_and_sqrt(
     }
 
     // Compute 2^s root of unity given the generator
-    let root_of_unity =
-        biguint_to_u64_vec((exp(generator.clone(), &t, &modulus) * &r) % modulus, limbs);
-    let generator = biguint_to_u64_vec((generator.clone() * &r) % modulus, limbs);
+    let root_of_unity = biguint_to_u64_vec(to_mont(exp(generator.clone(), &t, &modulus)), limbs);
+    let generator = biguint_to_u64_vec(to_mont(generator), limbs);
 
     let sqrt_impl =
         if (modulus % BigUint::from_str("4").unwrap()) == BigUint::from_str("3").unwrap() {
@@ -577,7 +584,7 @@ fn prime_field_constants_and_sqrt(
         };
 
     // Compute R^2 mod m
-    let r2 = biguint_to_u64_vec((&r * &r) % modulus, limbs);
+    let r2 = biguint_to_u64_vec(to_mont(r.clone()), limbs);
 
     let r = biguint_to_u64_vec(r, limbs);
     let modulus_le_bytes = ReprEndianness::Little.modulus_repr(modulus, limbs * 8);
@@ -617,6 +624,9 @@ fn prime_field_constants_and_sqrt(
 
             /// -(m^{-1} mod m) mod m
             const INV: u64 = #inv;
+
+            /// 2^{-1} mod m
+            const TWO_INV: #name = #name(#two_inv);
 
             /// Multiplicative generator of `MODULUS` - 1 order, also quadratic
             /// nonresidue.
@@ -1218,6 +1228,8 @@ fn prime_field_impl(
             const NUM_BITS: u32 = MODULUS_BITS;
 
             const CAPACITY: u32 = Self::NUM_BITS - 1;
+
+            const TWO_INV: Self = TWO_INV;
 
             const MULTIPLICATIVE_GENERATOR: Self = GENERATOR;
 
