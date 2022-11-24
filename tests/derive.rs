@@ -42,6 +42,11 @@ fn constants() {
     use ff::{Field, PrimeField};
 
     assert_eq!(
+        Bls381K12Scalar::MODULUS,
+        "0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001",
+    );
+
+    assert_eq!(
         Bls381K12Scalar::from(2) * Bls381K12Scalar::TWO_INV,
         Bls381K12Scalar::ONE,
     );

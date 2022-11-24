@@ -300,6 +300,12 @@ pub trait PrimeField: Field + From<u64> {
         !self.is_odd()
     }
 
+    /// Modulus of the field written as a string for debugging purposes.
+    ///
+    /// The encoding of the modulus is implementation-specific. Generic users of the
+    /// `PrimeField` trait should treat this string as opaque.
+    const MODULUS: &'static str;
+
     /// How many bits are needed to represent an element of this field.
     const NUM_BITS: u32;
 

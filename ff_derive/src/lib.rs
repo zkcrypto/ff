@@ -594,6 +594,7 @@ fn prime_field_constants_and_sqrt(
 
     let r = biguint_to_u64_vec(r, limbs);
     let modulus_le_bytes = ReprEndianness::Little.modulus_repr(modulus, limbs * 8);
+    let modulus_str = format!("0x{}", modulus.to_str_radix(16));
     let modulus = biguint_to_real_u64_vec(modulus.clone(), limbs);
 
     // Compute -m^-1 mod 2**64 by exponentiating by totient(2**64) - 1
@@ -614,6 +615,9 @@ fn prime_field_constants_and_sqrt(
 
             /// This is the modulus m of the prime field in limb form
             const MODULUS_LIMBS: #name = #name([#(#modulus,)*]);
+
+            /// This is the modulus m of the prime field in hex string form
+            const MODULUS_STR: &'static str = #modulus_str;
 
             /// The number of bits needed to represent the modulus.
             const MODULUS_BITS: u32 = #modulus_num_bits;
@@ -1236,6 +1240,8 @@ fn prime_field_impl(
                 // currently implemented using variable-time code.
                 ::ff::derive::subtle::Choice::from((r.0[0] & 1) as u8)
             }
+
+            const MODULUS: &'static str = MODULUS_STR;
 
             const NUM_BITS: u32 = MODULUS_BITS;
 
