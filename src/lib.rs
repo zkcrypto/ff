@@ -350,6 +350,24 @@ pub trait PrimeField: Field + From<u64> {
     const DELTA: Self;
 }
 
+/// The subset of prime-order fields such that `(modulus - 1)` is divisible by `N`.
+///
+/// In these fields, there will be two valid choices of [`Self::ZETA`]. Similarly to
+/// [`PrimeField::MULTIPLICATIVE_GENERATOR`], the specific choice does not matter, as long
+/// as the choice is consistent across all uses of the field.
+pub trait WithSmallOrderMulGroup<const N: u8>: PrimeField {
+    /// A field element of small multiplicative order $N$.
+    ///
+    /// The presense of this element allows you to perform (certain types of)
+    /// endomorphisms on some elliptic curves.
+    ///
+    /// It can be calculated using [SageMath] as
+    /// `GF(modulus).primitive_element() ^ ((modulus - 1) // N)`.
+    ///
+    /// [SageMath]: https://www.sagemath.org/
+    const ZETA: Self;
+}
+
 /// Trait for constructing a [`PrimeField`] element from a fixed-length uniform byte
 /// array.
 ///

@@ -17,6 +17,7 @@ and this library adheres to Rust's notion of
   - `ff::PrimeField::MULTIPLICATIVE_GENERATOR`
   - `ff::PrimeField::{ROOT_OF_UNITY, ROOT_OF_UNITY_INV}`
   - `ff::PrimeField::DELTA`
+- `ff::WithSmallOrderMulGroup`
 - `ff::FromUniformBytes`
 - `ff::helpers`:
   - `sqrt_tonelli_shanks`
