@@ -590,7 +590,7 @@ fn prime_field_constants_and_sqrt(
         };
 
     // Compute R^2 mod m
-    let r2 = biguint_to_u64_vec(to_mont(r.clone()), limbs);
+    let r2 = biguint_to_u64_vec((&r * &r) % modulus, limbs);
 
     let r = biguint_to_u64_vec(r, limbs);
     let modulus_le_bytes = ReprEndianness::Little.modulus_repr(modulus, limbs * 8);
