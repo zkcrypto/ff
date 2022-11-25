@@ -352,7 +352,7 @@ pub trait PrimeField: Field + From<u64> {
 
 /// The subset of prime-order fields such that `(modulus - 1)` is divisible by `N`.
 ///
-/// In these fields, there will be two valid choices of [`Self::ZETA`]. Similarly to
+/// If `N` is prime, there will be `N - 1` valid choices of [`Self::ZETA`]. Similarly to
 /// [`PrimeField::MULTIPLICATIVE_GENERATOR`], the specific choice does not matter, as long
 /// as the choice is consistent across all uses of the field.
 pub trait WithSmallOrderMulGroup<const N: u8>: PrimeField {
@@ -363,6 +363,8 @@ pub trait WithSmallOrderMulGroup<const N: u8>: PrimeField {
     ///
     /// It can be calculated using [SageMath] as
     /// `GF(modulus).primitive_element() ^ ((modulus - 1) // N)`.
+    /// Choosing the element of order $N$ that is smallest, when considered
+    /// as an integer, may help to ensure consistency.
     ///
     /// [SageMath]: https://www.sagemath.org/
     const ZETA: Self;
@@ -420,8 +422,8 @@ pub trait WithSmallOrderMulGroup<const N: u8>: PrimeField {
 /// # Implementing `FromUniformBytes`
 ///
 /// [`Self::from_uniform_bytes`] should always be implemented by interpreting the provided
-/// byte array as the little endian encoding of an integer, and then reducing that integer
-/// modulo the field modulus.
+/// byte array as the little endian unsigned encoding of an integer, and then reducing that
+/// integer modulo the field modulus.
 ///
 /// For security, `N` must be chosen so that `N * 8 >= Self::NUM_BITS + 128`. A larger
 /// value of `N` may be chosen for convenience; for example, for a field with a 255-bit
@@ -440,8 +442,8 @@ pub trait WithSmallOrderMulGroup<const N: u8>: PrimeField {
 /// please [let us know about your use case](https://github.com/zkcrypto/ff/issues/new) so
 /// we can take it into consideration for future evolutions of the `ff` traits.
 pub trait FromUniformBytes<const N: usize>: PrimeField {
-    /// Returns a field element that is congruent to the provided little endian byte
-    /// representation of an integer.
+    /// Returns a field element that is congruent to the provided little endian unsigned
+    /// byte representation of an integer.
     fn from_uniform_bytes(bytes: &[u8; N]) -> Self;
 }
 
