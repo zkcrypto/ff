@@ -11,7 +11,14 @@ and this library adheres to Rust's notion of
 - `ff::Field::pow`
 - `ff::Field::{sqrt_ratio, sqrt_alt}`
 - `core::iter::{Sum, Product}` bounds on `ff::Field`
-- `ff::PrimeField::{MULTIPLICATIVE_GENERATOR, ROOT_OF_UNITY}`
+- `ff::PrimeField::from_u128`
+- `ff::PrimeField::{MODULUS, TWO_INV}`
+- Constants related to multiplicative generators:
+  - `ff::PrimeField::MULTIPLICATIVE_GENERATOR`
+  - `ff::PrimeField::{ROOT_OF_UNITY, ROOT_OF_UNITY_INV}`
+  - `ff::PrimeField::DELTA`
+- `ff::WithSmallOrderMulGroup`
+- `ff::FromUniformBytes`
 - `ff::helpers`:
   - `sqrt_tonelli_shanks`
   - `sqrt_ratio_generic`
@@ -23,6 +30,9 @@ and this library adheres to Rust's notion of
   if it is more efficient in practice, or they can keep their own implementation
   of `Field::sqrt` and implement `Field::sqrt_ratio` in terms of that
   implementation using the `ff::helpers::sqrt_ratio_generic` helper function.
+- `ff::PrimeField` is now documented as representing a non-binary field (i.e.
+  its prime is not 2). This was always the intention, but is now a concrete
+  requirement in order for `PrimeField::TWO_INV` to exist.
 
 ### Removed
 - `ff::Field::{zero, one}` (use `ff::Field::{ZERO, ONE}` instead).

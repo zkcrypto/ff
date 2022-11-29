@@ -479,6 +479,14 @@ fn prime_field_constants_and_sqrt(
 
     // Compute R = 2**(64 * limbs) mod m
     let r = (BigUint::one() << (limbs * 64)) % modulus;
+    let to_mont = |v| (v * &r) % modulus;
+
+    let two = BigUint::from_str("2").unwrap();
+    let p_minus_2 = modulus - &two;
+    let invert = |v| exp(v, &p_minus_2, &modulus);
+
+    // 2^-1 mod m
+    let two_inv = biguint_to_u64_vec(to_mont(invert(two)), limbs);
 
     // modulus - 1 = 2^s * t
     let mut s: u32 = 0;
@@ -489,9 +497,14 @@ fn prime_field_constants_and_sqrt(
     }
 
     // Compute 2^s root of unity given the generator
-    let root_of_unity =
-        biguint_to_u64_vec((exp(generator.clone(), &t, &modulus) * &r) % modulus, limbs);
-    let generator = biguint_to_u64_vec((generator.clone() * &r) % modulus, limbs);
+    let root_of_unity = exp(generator.clone(), &t, &modulus);
+    let root_of_unity_inv = biguint_to_u64_vec(to_mont(invert(root_of_unity.clone())), limbs);
+    let root_of_unity = biguint_to_u64_vec(to_mont(root_of_unity), limbs);
+    let delta = biguint_to_u64_vec(
+        to_mont(exp(generator.clone(), &(BigUint::one() << s), &modulus)),
+        limbs,
+    );
+    let generator = biguint_to_u64_vec(to_mont(generator), limbs);
 
     let sqrt_impl =
         if (modulus % BigUint::from_str("4").unwrap()) == BigUint::from_str("3").unwrap() {
@@ -581,6 +594,7 @@ fn prime_field_constants_and_sqrt(
 
     let r = biguint_to_u64_vec(r, limbs);
     let modulus_le_bytes = ReprEndianness::Little.modulus_repr(modulus, limbs * 8);
+    let modulus_str = format!("0x{}", modulus.to_str_radix(16));
     let modulus = biguint_to_real_u64_vec(modulus.clone(), limbs);
 
     // Compute -m^-1 mod 2**64 by exponentiating by totient(2**64) - 1
@@ -602,6 +616,9 @@ fn prime_field_constants_and_sqrt(
             /// This is the modulus m of the prime field in limb form
             const MODULUS_LIMBS: #name = #name([#(#modulus,)*]);
 
+            /// This is the modulus m of the prime field in hex string form
+            const MODULUS_STR: &'static str = #modulus_str;
+
             /// The number of bits needed to represent the modulus.
             const MODULUS_BITS: u32 = #modulus_num_bits;
 
@@ -618,6 +635,9 @@ fn prime_field_constants_and_sqrt(
             /// -(m^{-1} mod m) mod m
             const INV: u64 = #inv;
 
+            /// 2^{-1} mod m
+            const TWO_INV: #name = #name(#two_inv);
+
             /// Multiplicative generator of `MODULUS` - 1 order, also quadratic
             /// nonresidue.
             const GENERATOR: #name = #name(#generator);
@@ -627,6 +647,12 @@ fn prime_field_constants_and_sqrt(
 
             /// 2^s root of unity computed by GENERATOR^t
             const ROOT_OF_UNITY: #name = #name(#root_of_unity);
+
+            /// (2^s)^{-1} mod m
+            const ROOT_OF_UNITY_INV: #name = #name(#root_of_unity_inv);
+
+            /// GENERATOR^{2^s}
+            const DELTA: #name = #name(#delta);
         },
         sqrt_impl,
     )
@@ -1215,15 +1241,23 @@ fn prime_field_impl(
                 ::ff::derive::subtle::Choice::from((r.0[0] & 1) as u8)
             }
 
+            const MODULUS: &'static str = MODULUS_STR;
+
             const NUM_BITS: u32 = MODULUS_BITS;
 
             const CAPACITY: u32 = Self::NUM_BITS - 1;
+
+            const TWO_INV: Self = TWO_INV;
 
             const MULTIPLICATIVE_GENERATOR: Self = GENERATOR;
 
             const S: u32 = S;
 
             const ROOT_OF_UNITY: Self = ROOT_OF_UNITY;
+
+            const ROOT_OF_UNITY_INV: Self = ROOT_OF_UNITY_INV;
+
+            const DELTA: Self = DELTA;
         }
 
         #prime_field_bits_impl
