@@ -6,6 +6,8 @@ and this library adheres to Rust's notion of
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.13.0] - 2022-12-06
 ### Added
 - `ff::Field::{ZERO, ONE}`
 - `ff::Field::pow`
