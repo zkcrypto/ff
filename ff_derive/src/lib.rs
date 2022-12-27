@@ -332,6 +332,14 @@ fn prime_field_repr_impl(
 ) -> proc_macro2::TokenStream {
     let repr_iter_be = endianness.iter_be();
 
+    let prime_field_repr_zero_impl = if cfg!(feature = "zero") {
+        Some(quote! {
+            impl ::zeroize::DefaultIsZeroes for #repr {}
+        })
+    } else {
+        None
+    };
+
     quote! {
         #[derive(Copy, Clone)]
         pub struct #repr(pub [u8; #bytes]);
@@ -386,6 +394,8 @@ fn prime_field_repr_impl(
                 &mut self.0
             }
         }
+
+        #prime_field_repr_zero_impl
     }
 }
 
@@ -934,6 +944,14 @@ fn prime_field_impl(
         None
     };
 
+    let prime_field_zero_impl = if cfg!(feature = "zero") {
+        Some(quote! {
+            impl ::zeroize::DefaultIsZeroes for #name {}
+        })
+    } else {
+        None
+    };
+
     let top_limb_index = limbs - 1;
 
     quote! {
@@ -1253,6 +1271,7 @@ fn prime_field_impl(
         }
 
         #prime_field_bits_impl
+        #prime_field_zero_impl
 
         impl ::ff::Field for #name {
             const ZERO: Self = #name([0; #limbs]);
