@@ -16,9 +16,10 @@ edition = "2021"
 [dependencies]
 bitvec = { version = "1", default-features = false, optional = true }
 byteorder = { version = "1", default-features = false, optional = true }
-ff_derive = { version = "0.13", path = "ff_derive", optional = true }
+ff_derive = { version = "0.13.0", path = "ff_derive", optional = true }
 rand_core = { version = "0.6", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
+zeroize = { version = "1", default-features = false, optional = true }
 
 [dev-dependencies]
 blake2b_simd = "1"
@@ -28,15 +29,21 @@ rand = "0.8"
 default = ["bits", "std"]
 alloc = []
 bits = ["bitvec"]
+zero = ["zeroize"]
 derive = ["byteorder", "ff_derive"]
 std = ["alloc"]
 # with MSRV 1.60 this could be merged into bits with ff_derive?/bits
 # see PR#72 for more information.
-derive_bits = ["bits", "ff_derive/bits"]
+derive_bits = ["bits", "derive", "ff_derive/bits"]
+derive_zero = ["zero", "derive", "ff_derive/zero"]
 
 [[test]]
 name = "derive"
 required-features = ["derive"]
+
+[[test]]
+name = "derive_zero"
+required-features = ["derive_zero"]
 
 [badges]
 maintenance = { status = "actively-developed" }
