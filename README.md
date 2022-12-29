@@ -21,7 +21,7 @@ ff = "0.13"
 The `ff` crate contains the `Field` and `PrimeField` traits.
 See the **[documentation](https://docs.rs/ff/)** for more.
 
-### #![derive(PrimeField)]
+### `#![derive(PrimeField)]`
 
 If you need an implementation of a prime field, this library also provides a procedural
 macro that will expand into an efficient implementation of a prime field when supplied
