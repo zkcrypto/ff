@@ -27,12 +27,9 @@ rand = "0.8"
 [features]
 default = ["bits", "std"]
 alloc = []
-bits = ["bitvec"]
+bits = ["bitvec", "ff_derive?/bits"]
 derive = ["byteorder", "ff_derive"]
 std = ["alloc"]
-# with MSRV 1.60 this could be merged into bits with ff_derive?/bits
-# see PR#72 for more information.
-derive_bits = ["bits", "ff_derive/bits"]
 
 [[test]]
 name = "derive"
