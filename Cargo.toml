@@ -35,15 +35,11 @@ std = ["alloc"]
 # with MSRV 1.60 this could be merged into bits with ff_derive?/bits
 # see PR#72 for more information.
 derive_bits = ["bits", "derive", "ff_derive/bits"]
-derive_zero = ["zero", "derive", "ff_derive/zero"]
+derive_zero = ["zero", "derive", "ff_derive/zeroize"]
 
 [[test]]
 name = "derive"
 required-features = ["derive"]
-
-[[test]]
-name = "derive_zero"
-required-features = ["derive_zero"]
 
 [badges]
 maintenance = { status = "actively-developed" }
