@@ -332,7 +332,7 @@ fn prime_field_repr_impl(
 ) -> proc_macro2::TokenStream {
     let repr_iter_be = endianness.iter_be();
 
-    let prime_field_repr_zero_impl = if cfg!(feature = "zero") {
+    let prime_field_repr_zeroize_impl = if cfg!(feature = "zeroize") {
         Some(quote! {
             impl ::zeroize::DefaultIsZeroes for #repr {}
         })
@@ -395,7 +395,7 @@ fn prime_field_repr_impl(
             }
         }
 
-        #prime_field_repr_zero_impl
+        #prime_field_repr_zeroize_impl
     }
 }
 
@@ -952,7 +952,7 @@ fn prime_field_impl(
         }
     };
 
-    let prime_field_zero_impl = if cfg!(feature = "zero") {
+    let prime_field_zeroize_impl = if cfg!(feature = "zeroize") {
         Some(quote! {
             impl ::zeroize::DefaultIsZeroes for #name {}
         })
@@ -1279,7 +1279,7 @@ fn prime_field_impl(
         }
 
         #prime_field_bits_impl
-        #prime_field_zero_impl
+        #prime_field_zeroize_impl
 
         impl ::ff::Field for #name {
             const ZERO: Self = #name([0; #limbs]);
