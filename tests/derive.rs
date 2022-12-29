@@ -137,7 +137,6 @@ fn batch_inversion() {
 }
 
 #[cfg(feature = "zero")]
-
 #[test]
 fn zeroize() {
     use ff::{Field, PrimeField};
