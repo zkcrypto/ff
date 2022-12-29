@@ -16,7 +16,7 @@ edition = "2021"
 [dependencies]
 bitvec = { version = "1", default-features = false, optional = true }
 byteorder = { version = "1", default-features = false, optional = true }
-ff_derive = { version = "0.13.0", path = "ff_derive", optional = true }
+ff_derive = { version = "0.13", path = "ff_derive", optional = true }
 rand_core = { version = "0.6", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 zeroize = { version = "1", default-features = false, optional = true }
