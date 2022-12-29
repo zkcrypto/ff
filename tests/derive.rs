@@ -157,7 +157,6 @@ fn sqrt() {
 }
 
 #[cfg(feature = "zero")]
-
 #[test]
 fn zeroize() {
     use ff::{Field, PrimeField};
