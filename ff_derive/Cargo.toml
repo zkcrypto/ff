@@ -15,7 +15,7 @@ edition = "2021"
 [features]
 # enabled when generating bitvec code utilizing the version of ff's bitvec
 bits = []
-# enabled when generating zeroize code utilizing the version of ff's zeroize
+# enabled when generating zeroize bindings
 zeroize = []
 
 [lib]
