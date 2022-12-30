@@ -156,7 +156,7 @@ fn sqrt() {
     test(Fp::random(&mut rand::rng()));
 }
 
-#[cfg(feature = "zero")]
+#[cfg(feature = "test_derive_zeroize")]
 #[test]
 fn zeroize() {
     use ff::{Field, PrimeField};
