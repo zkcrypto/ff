@@ -17,7 +17,7 @@ repository = "https://github.com/zkcrypto/ff"
 # enabled when generating bitvec code utilizing the version of ff's bitvec
 # ff/bits enables this
 bits = []
-# enabled when generating zeroize code utilizing the version of ff's zeroize
+# enabled when generating zeroize bindings
 zeroize = []
 
 [lib]

@@ -20,7 +20,6 @@ byteorder = { version = "1", default-features = false, optional = true }
 ff_derive = { version = "=0.14.0-pre.0", path = "ff_derive", optional = true }
 rand_core = { version = "0.9", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
-zeroize = { version = "1", default-features = false, optional = true }
 
 [dev-dependencies]
 blake2b_simd = "1"
