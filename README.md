@@ -2,6 +2,13 @@
 
 `ff` is a finite field library written in pure Rust, with no `unsafe{}` code.
 
+## RFC process
+
+This crate follows the [zkcrypto RFC process](https://zkcrypto.github.io/rfcs/).
+If you want to propose "substantial" changes to this crate (in particular to the
+`ff` traits), please [create an RFC](https://github.com/zkcrypto/rfcs) for wider
+discussion.
+
 ## Disclaimers
 
 * This library does not provide constant-time guarantees. The traits enable downstream
