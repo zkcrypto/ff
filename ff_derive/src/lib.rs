@@ -471,7 +471,7 @@ fn prime_field_constants_and_sqrt(
     let bytes = limbs * 8;
     let modulus_num_bits = biguint_num_bits(modulus.clone());
 
-    // The number of bits we should "shave" from a randomly sampled reputation, i.e.,
+    // The number of bits we should "shave" from a randomly sampled representation, i.e.,
     // if our modulus is 381 bits and our representation is 384 bits, we should shave
     // 3 bits from the beginning of a randomly sampled 384 bit representation to
     // reduce the cost of rejection sampling.
