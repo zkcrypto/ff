@@ -133,7 +133,7 @@ and this library adheres to Rust's notion of
 ### Changed
 - MSRV is now 1.44.0.
 - `ff::Field::random<R: RngCore + ?Sized>(rng: &mut R) -> Self` has been changed
-  to `Field::random(rng: impl RngCore) -> Self`, to aligh with
+  to `Field::random(rng: impl RngCore) -> Self`, to align with
   `group::Group::random`.
 
 ### Removed
