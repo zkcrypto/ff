@@ -18,12 +18,12 @@ repository = "https://github.com/zkcrypto/ff"
 bitvec = { version = "1", default-features = false, optional = true }
 byteorder = { version = "1", default-features = false, optional = true }
 ff_derive = { version = "0.13", path = "ff_derive", optional = true }
-rand_core = { version = "0.6", default-features = false }
+rand_core = { version = "0.9", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 
 [dev-dependencies]
 blake2b_simd = "1"
-rand = "0.8"
+rand = "0.9"
 
 [features]
 default = ["bits", "std"]
