@@ -10,6 +10,9 @@ and this library adheres to Rust's notion of
 ### Changed
 - MSRV is now 1.63.0.
 - Migrated to `rand_core 0.9`.
+- `ff::Field::random(rng: impl RngCore) -> Self` has been changed back to
+  `Field::random<R: RngCore + ?Sized>(rng: &mut R) -> Self`, to enable passing a
+  trait object as the RNG.
 
 ### Removed
 - `derive_bits` feature flag (use `bits` instead).
