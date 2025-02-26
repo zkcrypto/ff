@@ -13,6 +13,8 @@ and this library adheres to Rust's notion of
 - `ff::Field::random(rng: impl RngCore) -> Self` has been changed back to
   `Field::random<R: RngCore + ?Sized>(rng: &mut R) -> Self`, to enable passing a
   trait object as the RNG.
+- `ff::Field::try_from_rng` is a new trait method that must be implemented by
+  downstreams. `Field::random` now has a default implementation that calls it.
 
 ### Removed
 - `derive_bits` feature flag (use `bits` instead).
