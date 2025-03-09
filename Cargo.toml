@@ -5,13 +5,14 @@ authors = [
     "Sean Bowe <ewillbefull@gmail.com>",
     "Jack Grigg <thestr4d@gmail.com>",
 ]
+edition = "2021"
+rust-version = "1.56"
 description = "Library for building and interfacing with finite fields"
 readme = "README.md"
 documentation = "https://docs.rs/ff/"
 homepage = "https://github.com/zkcrypto/ff"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/zkcrypto/ff"
-edition = "2021"
 
 [dependencies]
 bitvec = { version = "1", default-features = false, optional = true }
