@@ -90,7 +90,6 @@ name = "ff_derive"
 version = "0.13.0"
 dependencies = [
  "addchain",
- "cfg-if",
  "num-bigint",
  "num-integer",
  "num-traits",
