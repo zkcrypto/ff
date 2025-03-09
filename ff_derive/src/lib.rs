@@ -1267,12 +1267,12 @@ fn prime_field_impl(
             const ONE: Self = R;
 
             /// Computes a uniformly random element using rejection sampling.
-            fn random<R: ::ff::derive::rand_core::RngCore + ?Sized>(rng: &mut R) -> Self {
+            fn try_from_rng<R: ::ff::derive::rand_core::TryRngCore + ?Sized>(rng: &mut R) -> ::core::result::Result<Self, R::Error> {
                 loop {
                     let mut tmp = {
                         let mut repr = [0u64; #limbs];
                         for i in 0..#limbs {
-                            repr[i] = rng.next_u64();
+                            repr[i] = rng.try_next_u64()?;
                         }
                         #name(repr)
                     };
@@ -1285,7 +1285,7 @@ fn prime_field_impl(
                     tmp.0.as_mut()[#top_limb_index] &= 0xffffffffffffffffu64.checked_shr(REPR_SHAVE_BITS).unwrap_or(0);
 
                     if tmp.is_valid() {
-                        return tmp
+                        return Ok(tmp)
                     }
                 }
             }

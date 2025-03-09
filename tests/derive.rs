@@ -33,6 +33,7 @@ mod full_limbs {
         use ff::Field;
 
         let _ = F384p::random(&mut rand::rng());
+        let _ = F384p::try_from_rng(&mut rand::rngs::OsRng).unwrap();
     }
 }
 
