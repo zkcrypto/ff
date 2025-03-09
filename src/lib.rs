@@ -1,8 +1,8 @@
 //! This crate provides traits for working with finite fields.
 
-// Catch documentation errors caused by code changes.
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+// Catch documentation errors caused by code changes.
 #![deny(rustdoc::broken_intra_doc_links)]
 #![forbid(unsafe_code)]
 
