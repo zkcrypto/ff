@@ -135,3 +135,20 @@ fn batch_inversion() {
         }
     }
 }
+
+#[cfg(feature = "test_derive_zeroize")]
+#[test]
+fn zeroize() {
+    use ff::{Field, PrimeField};
+    use rand::rngs::OsRng;
+    use zeroize::Zeroize;
+
+    let mut f = Bls381K12Scalar::random(OsRng);
+    let mut r = f.to_repr();
+
+    f.zeroize();
+    assert_eq!(f, Bls381K12Scalar::ZERO);
+
+    r.zeroize();
+    assert_eq!(r, Default::default());
+}
