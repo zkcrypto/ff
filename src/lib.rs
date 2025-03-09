@@ -75,7 +75,7 @@ pub trait Field:
     const ONE: Self;
 
     /// Returns an element chosen uniformly at random using a user-provided RNG.
-    fn random(rng: impl RngCore) -> Self;
+    fn random<R: RngCore + ?Sized>(rng: &mut R) -> Self;
 
     /// Returns true iff this element is zero.
     fn is_zero(&self) -> Choice {

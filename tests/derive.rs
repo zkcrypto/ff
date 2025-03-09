@@ -32,7 +32,7 @@ mod full_limbs {
     fn random_masking_does_not_overflow() {
         use ff::Field;
 
-        let _ = F384p::random(rand::rng());
+        let _ = F384p::random(&mut rand::rng());
     }
 }
 
