@@ -6,6 +6,8 @@ and this library adheres to Rust's notion of
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.13.1] - 2025-03-09
 ### Changed
 - `ff_derive` now works with all odd primes, not just primes that are either
   `3 (mod 4)` or `1 (mod 16)`.

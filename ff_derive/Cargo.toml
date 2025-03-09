@@ -1,6 +1,6 @@
 [package]
 name = "ff_derive"
-version = "0.13.0"
+version = "0.13.1"
 authors = [
     "Sean Bowe <ewillbefull@gmail.com>",
     "Jack Grigg <thestr4d@gmail.com>",

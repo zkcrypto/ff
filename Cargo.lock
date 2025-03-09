@@ -74,7 +74,7 @@ checksum = "245097e9a4535ee1e3e3931fcfcd55a796a44c643e8596ff6566d68f09b87bbc"
 
 [[package]]
 name = "ff"
-version = "0.13.0"
+version = "0.13.1"
 dependencies = [
  "bitvec",
  "blake2b_simd",
@@ -87,7 +87,7 @@ dependencies = [
 
 [[package]]
 name = "ff_derive"
-version = "0.13.0"
+version = "0.13.1"
 dependencies = [
  "addchain",
  "num-bigint",
