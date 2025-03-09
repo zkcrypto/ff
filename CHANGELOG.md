@@ -9,6 +9,7 @@ and this library adheres to Rust's notion of
 
 ### Changed
 - MSRV is now 1.63.0.
+- Migrated to `rand_core 0.9`.
 
 ### Removed
 - `derive_bits` feature flag (use `bits` instead).
