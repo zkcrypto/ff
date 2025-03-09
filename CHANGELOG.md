@@ -7,6 +7,12 @@ and this library adheres to Rust's notion of
 
 ## [Unreleased]
 
+### Changed
+- MSRV is now 1.63.0.
+
+### Removed
+- `derive_bits` feature flag (use `bits` instead).
+
 ## [0.13.0] - 2022-12-06
 ### Added
 - `ff::Field::{ZERO, ONE}`

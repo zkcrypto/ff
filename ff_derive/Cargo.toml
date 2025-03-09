@@ -6,7 +6,7 @@ authors = [
     "Jack Grigg <thestr4d@gmail.com>",
 ]
 edition = "2021"
-rust-version = "1.56"
+rust-version = "1.63"
 description = "Procedural macro library used to build custom prime field implementations"
 documentation = "https://docs.rs/ff-derive/"
 homepage = "https://github.com/zkcrypto/ff"
@@ -15,6 +15,7 @@ repository = "https://github.com/zkcrypto/ff"
 
 [features]
 # enabled when generating bitvec code utilizing the version of ff's bitvec
+# ff/bits enables this
 bits = []
 
 [lib]
