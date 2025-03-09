@@ -15,6 +15,7 @@ and this library adheres to Rust's notion of
   trait object as the RNG.
 - `ff::Field::try_from_rng` is a new trait method that must be implemented by
   downstreams. `Field::random` now has a default implementation that calls it.
+- `ff::Field` now requires a CSPRNG (`CryptoRng`) instead of a plain RNG.
 
 ### Removed
 - `derive_bits` feature flag (use `bits` instead).

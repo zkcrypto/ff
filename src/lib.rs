@@ -30,7 +30,7 @@ use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use rand_core::{RngCore, TryRngCore};
+use rand_core::{CryptoRng, TryCryptoRng};
 use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 
 /// Bit representation of a field element.
@@ -76,7 +76,7 @@ pub trait Field:
     const ONE: Self;
 
     /// Returns an element chosen uniformly at random using a user-provided RNG.
-    fn random<R: RngCore + ?Sized>(rng: &mut R) -> Self {
+    fn random<R: CryptoRng + ?Sized>(rng: &mut R) -> Self {
         Self::try_from_rng(rng)
             .map_err(|e: Infallible| e)
             .expect("Infallible failed")
@@ -88,7 +88,7 @@ pub trait Field:
     }
 
     /// Returns an element chosen uniformly at random using a user-provided RNG.
-    fn try_from_rng<R: TryRngCore + ?Sized>(rng: &mut R) -> Result<Self, R::Error>;
+    fn try_from_rng<R: TryCryptoRng + ?Sized>(rng: &mut R) -> Result<Self, R::Error>;
 
     /// Returns true iff this element is zero.
     fn is_zero(&self) -> Choice {
