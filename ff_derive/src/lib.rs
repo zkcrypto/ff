@@ -1381,7 +1381,7 @@ fn prime_field_impl(
             }
 
             /// Subtracts the modulus from this element if this element is not in the
-            /// field. Only used interally.
+            /// field. Only used internally.
             #[inline(always)]
             fn reduce(&mut self) {
                 if !self.is_valid() {
