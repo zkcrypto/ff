@@ -538,7 +538,7 @@ fn prime_field_constants_and_sqrt(
             };
 
             quote! {
-                // Tonelli-Shank's algorithm works for every odd prime.
+                // Tonelli-Shanks algorithm works for every remaining odd prime.
                 // https://eprint.iacr.org/2012/685.pdf (page 12, algorithm 5)
                 use ::ff::derive::subtle::{ConditionallySelectable, ConstantTimeEq};
 
