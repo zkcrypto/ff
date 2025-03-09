@@ -189,6 +189,40 @@ pub trait Field:
 
         res
     }
+
+    /// Returns `a.into_iter().zip(b).fold(Self::ZERO, |acc, (a_i, b_i)| acc + a_i * b_i)`.
+    ///
+    /// This computes the "dot product" or "inner product" `a ⋅ b`.
+    ///
+    /// The provided implementation of this trait method uses the direct calculation given
+    /// above. Implementations of `Field` should override this to use more efficient
+    /// methods that take advantage of their internal representation, such as interleaving
+    /// or sharing modular reductions.
+    fn sum_of_products<const T: usize>(a: [Self; T], b: [Self; T]) -> Self {
+        a.into_iter()
+            .zip(b)
+            .fold(Self::ZERO, |acc, (a_i, b_i)| acc + a_i * b_i)
+    }
+
+    /// Returns `pairs.into_iter().fold(Self::ZERO, |acc, (a_i, b_i)| acc + (*a_i * b_i))`.
+    ///
+    /// This computes the "dot product" or "inner product" `a ⋅ b` of two equal-length
+    /// sequences of elements `a` and `b`, such that `pairs = a.iter().zip(b.iter())`.
+    ///
+    /// This method is generally slower than [`Self::sum_of_products`] but allows for the
+    /// number of pairs to be determined at runtime.
+    ///
+    /// The provided implementation of this trait method uses the direct calculation given
+    /// above. Implementations of `Field` should override this to use more efficient
+    /// methods that take advantage of their internal representation, such as interleaving
+    /// or sharing modular reductions.
+    fn sum_of_products_iter<'a, I: IntoIterator<Item = (&'a Self, &'a Self)> + Clone>(
+        pairs: I,
+    ) -> Self {
+        pairs
+            .into_iter()
+            .fold(Self::ZERO, |acc, (a_i, b_i)| acc + (*a_i * b_i))
+    }
 }
 
 /// This represents an element of a non-binary prime field.
