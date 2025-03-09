@@ -1,6 +1,6 @@
 [package]
 name = "ff_derive"
-version = "0.13.0"
+version = "0.13.1"
 authors = [
     "Sean Bowe <ewillbefull@gmail.com>",
     "Jack Grigg <thestr4d@gmail.com>",
@@ -29,7 +29,6 @@ num-integer = "0.1"
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "1", features = ["full"] }
-cfg-if = "1"
 
 [badges]
 maintenance = { status = "passively-maintained" }

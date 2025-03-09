@@ -19,6 +19,15 @@ and this library adheres to Rust's notion of
 ### Removed
 - `derive_bits` feature flag (use `bits` instead).
 
+## [0.13.1] - 2025-03-09
+### Changed
+- `ff_derive` now works with all odd primes, not just primes that are either
+  `3 (mod 4)` or `1 (mod 16)`.
+
+### Fixed
+- A type inference problem when `ff_derive` and `hybrid-array` are in the same
+  dependency tree has been fixed.
+
 ## [0.13.0] - 2022-12-06
 ### Added
 - `ff::Field::{ZERO, ONE}`
@@ -145,7 +154,7 @@ and this library adheres to Rust's notion of
 ### Changed
 - MSRV is now 1.44.0.
 - `ff::Field::random<R: RngCore + ?Sized>(rng: &mut R) -> Self` has been changed
-  to `Field::random(rng: impl RngCore) -> Self`, to aligh with
+  to `Field::random(rng: impl RngCore) -> Self`, to align with
   `group::Group::random`.
 
 ### Removed
