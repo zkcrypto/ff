@@ -529,7 +529,7 @@ fn prime_field_constants_and_sqrt(
                     (sqrt * &sqrt).ct_eq(self), // Only return Some if it's the square root.
                 )
             }
-        } else if (modulus % BigUint::from_str("16").unwrap()) == BigUint::from_str("1").unwrap() {
+        } else {
             // Addition chain for (t - 1) // 2
             let t_minus_1_over_2 = if t == BigUint::one() {
                 quote!( #name::ONE )
@@ -538,7 +538,7 @@ fn prime_field_constants_and_sqrt(
             };
 
             quote! {
-                // Tonelli-Shank's algorithm for q mod 16 = 1
+                // Tonelli-Shank's algorithm works for every odd prime.
                 // https://eprint.iacr.org/2012/685.pdf (page 12, algorithm 5)
                 use ::ff::derive::subtle::{ConditionallySelectable, ConstantTimeEq};
 
@@ -581,12 +581,6 @@ fn prime_field_constants_and_sqrt(
                     (x * &x).ct_eq(self), // Only return Some if it's the square root.
                 )
             }
-        } else {
-            syn::Error::new_spanned(
-                &name,
-                "ff_derive can't generate a square root function for this field.",
-            )
-            .to_compile_error()
         };
 
     // Compute R^2 mod m
