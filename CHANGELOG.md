@@ -6,6 +6,13 @@ and this library adheres to Rust's notion of
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- `ff_derive` now works with all odd primes, not just primes that are either
+  `3 (mod 4)` or `1 (mod 16)`.
+
+### Fixed
+- A type inference problem when `ff_derive` and `hybrid-array` are in the same
+  dependency tree has been fixed.
 
 ## [0.13.0] - 2022-12-06
 ### Added
