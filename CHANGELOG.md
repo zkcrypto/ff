@@ -7,6 +7,18 @@ and this library adheres to Rust's notion of
 
 ## [Unreleased]
 
+### Changed
+- MSRV is now 1.63.0.
+- Migrated to `rand_core 0.9`.
+- `ff::Field::random(rng: impl RngCore) -> Self` has been changed back to
+  `Field::random<R: RngCore + ?Sized>(rng: &mut R) -> Self`, to enable passing a
+  trait object as the RNG.
+- `ff::Field::try_from_rng` is a new trait method that must be implemented by
+  downstreams. `Field::random` now has a default implementation that calls it.
+
+### Removed
+- `derive_bits` feature flag (use `bits` instead).
+
 ## [0.13.1] - 2025-03-09
 ### Changed
 - `ff_derive` now works with all odd primes, not just primes that are either

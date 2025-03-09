@@ -25,11 +25,12 @@ pub use bitvec::view::BitViewSized;
 #[cfg(feature = "bits")]
 use bitvec::{array::BitArray, order::Lsb0};
 
+use core::convert::Infallible;
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use rand_core::RngCore;
+use rand_core::{RngCore, TryRngCore};
 use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 
 /// Bit representation of a field element.
@@ -75,7 +76,19 @@ pub trait Field:
     const ONE: Self;
 
     /// Returns an element chosen uniformly at random using a user-provided RNG.
-    fn random(rng: impl RngCore) -> Self;
+    fn random<R: RngCore + ?Sized>(rng: &mut R) -> Self {
+        Self::try_from_rng(rng)
+            .map_err(|e: Infallible| e)
+            .expect("Infallible failed")
+
+        // NOTE: once MSRV gets to 1.82 remove the map_err/expect and use
+        // let Ok(out) = Self::try_from_rng(rng);
+        // out
+        // See: https://blog.rust-lang.org/2024/10/17/Rust-1.82.0.html#omitting-empty-types-in-pattern-matching
+    }
+
+    /// Returns an element chosen uniformly at random using a user-provided RNG.
+    fn try_from_rng<R: TryRngCore + ?Sized>(rng: &mut R) -> Result<Self, R::Error>;
 
     /// Returns true iff this element is zero.
     fn is_zero(&self) -> Choice {
