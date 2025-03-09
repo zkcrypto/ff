@@ -6,7 +6,7 @@ authors = [
     "Jack Grigg <thestr4d@gmail.com>",
 ]
 edition = "2021"
-rust-version = "1.56"
+rust-version = "1.63"
 description = "Library for building and interfacing with finite fields"
 readme = "README.md"
 documentation = "https://docs.rs/ff/"
@@ -28,12 +28,9 @@ rand = "0.8"
 [features]
 default = ["bits", "std"]
 alloc = []
-bits = ["bitvec"]
+bits = ["bitvec", "ff_derive?/bits"]
 derive = ["byteorder", "ff_derive"]
 std = ["alloc"]
-# with MSRV 1.60 this could be merged into bits with ff_derive?/bits
-# see PR#72 for more information.
-derive_bits = ["bits", "ff_derive/bits"]
 
 [[test]]
 name = "derive"
