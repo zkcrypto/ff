@@ -31,9 +31,8 @@ mod full_limbs {
     #[test]
     fn random_masking_does_not_overflow() {
         use ff::Field;
-        use rand::rngs::OsRng;
 
-        let _ = F384p::random(OsRng);
+        let _ = F384p::random(rand::rng());
     }
 }
 
@@ -153,6 +152,5 @@ fn sqrt() {
 
     test(Fp::ZERO);
     test(Fp::ONE);
-    use rand::rngs::OsRng;
-    test(Fp::random(OsRng));
+    test(Fp::random(rand::rng()));
 }
