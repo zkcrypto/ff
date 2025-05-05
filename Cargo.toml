@@ -6,7 +6,7 @@ authors = [
     "Jack Grigg <thestr4d@gmail.com>",
 ]
 edition = "2021"
-rust-version = "1.56"
+rust-version = "1.63"
 description = "Library for building and interfacing with finite fields"
 readme = "README.md"
 documentation = "https://docs.rs/ff/"
