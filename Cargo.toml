@@ -29,12 +29,9 @@ zeroize = { version = "1", default-features = false }
 [features]
 default = ["bits", "std"]
 alloc = []
-bits = ["bitvec"]
+bits = ["bitvec", "ff_derive?/bits"]
 derive = ["byteorder", "ff_derive"]
 std = ["alloc"]
-# with MSRV 1.60 this could be merged into bits with ff_derive?/bits
-# see PR#72 for more information.
-derive_bits = ["bits", "derive", "ff_derive/bits"]
 test_derive_zeroize = ["derive", "ff_derive/zeroize"]
 
 [[test]]
