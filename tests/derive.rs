@@ -160,7 +160,7 @@ fn sqrt() {
 #[test]
 fn zeroize() {
     use ff::{Field, PrimeField};
-    use rand::{TryRngCore, rngs::OsRng};
+    use rand::{rngs::OsRng, TryRngCore};
     use zeroize::Zeroize;
 
     let mut f = Bls381K12Scalar::random(&mut OsRng.unwrap_err());
