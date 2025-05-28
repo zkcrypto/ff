@@ -280,7 +280,7 @@ pub trait PrimeField: Field + From<u64> {
     ///
     /// The byte representation is interpreted with the same endianness as elements
     /// returned by [`PrimeField::to_repr`].
-    fn from_repr(repr: Self::Repr) -> CtOption<Self>;
+    fn from_repr(repr: &Self::Repr) -> CtOption<Self>;
 
     /// Attempts to convert a byte representation of a field element into an element of
     /// this prime field, failing if the input is not canonical (is not smaller than the
@@ -293,7 +293,7 @@ pub trait PrimeField: Field + From<u64> {
     ///
     /// This method provides **no** constant-time guarantees. Implementors of the
     /// `PrimeField` trait **may** optimise this method using non-constant-time logic.
-    fn from_repr_vartime(repr: Self::Repr) -> Option<Self> {
+    fn from_repr_vartime(repr: &Self::Repr) -> Option<Self> {
         Self::from_repr(repr).into()
     }
 

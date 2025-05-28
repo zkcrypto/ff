@@ -1189,7 +1189,7 @@ fn prime_field_impl(
         impl ::ff::PrimeField for #name {
             type Repr = #repr;
 
-            fn from_repr(r: #repr) -> ::ff::derive::subtle::CtOption<#name> {
+            fn from_repr(r: &#repr) -> ::ff::derive::subtle::CtOption<#name> {
                 #from_repr_impl
 
                 // Try to subtract the modulus
@@ -1207,7 +1207,7 @@ fn prime_field_impl(
                 ::ff::derive::subtle::CtOption::new(r * &R2, is_some)
             }
 
-            fn from_repr_vartime(r: #repr) -> Option<#name> {
+            fn from_repr_vartime(r: &#repr) -> Option<#name> {
                 #from_repr_impl
 
                 if r.is_valid() {
