@@ -86,7 +86,7 @@ pub trait Field:
     ///
     /// # Security
     ///
-    /// This method provides **no** constant-time guarantees. Implementors of the
+    /// This method provides **no** constant-time guarantees. Implementers of the
     /// `Field` trait **may** optimise this method using non-constant-time logic.
     fn is_zero_vartime(&self) -> bool {
         self.is_zero().into()
@@ -278,7 +278,7 @@ pub trait PrimeField: Field + From<u64> {
     ///
     /// # Security
     ///
-    /// This method provides **no** constant-time guarantees. Implementors of the
+    /// This method provides **no** constant-time guarantees. Implementers of the
     /// `PrimeField` trait **may** optimise this method using non-constant-time logic.
     fn from_repr_vartime(repr: Self::Repr) -> Option<Self> {
         Self::from_repr(repr).into()
