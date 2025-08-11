@@ -1,4 +1,4 @@
-# ff
+# ff [![Crates.io](https://img.shields.io/crates/v/ff.svg)](https://crates.io/crates/ff) #
 
 `ff` is a finite field library written in pure Rust, with no `unsafe{}` code.
 
