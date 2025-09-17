@@ -175,14 +175,12 @@ fn sqrt_ratio_test() {
             let div_inv = div.invert().unwrap();
             let expected = num * div_inv;
             assert_eq!(sqrt.square(), expected);
+        } else if div != Fp::ZERO {
+            let div_inv = div.invert().unwrap();
+            let expected = Fp::ROOT_OF_UNITY * num * div_inv;
+            assert_eq!(sqrt.square(), expected);
         } else {
-            if div != Fp::ZERO {
-                let div_inv = div.invert().unwrap();
-                let expected = Fp::ROOT_OF_UNITY * num * div_inv;
-                assert_eq!(sqrt.square(), expected);
-            } else {
-                assert_eq!(sqrt.square(), Fp::ZERO);
-            }
+            assert_eq!(sqrt.square(), Fp::ZERO);
         }
     }
 
