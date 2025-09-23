@@ -95,6 +95,38 @@ pub trait Field:
 
     /// Inverse of $2$ in the field.
     const TWO_INV: Self;
+    
+    /// A fixed multiplicative generator of `modulus - 1` order. This element must also be
+    /// a quadratic nonresidue.
+    ///
+    /// It can be calculated using [SageMath] as `GF(modulus).primitive_element()`.
+    ///
+    /// Implementations of this trait MUST ensure that this is the generator used to
+    /// derive `Self::ROOT_OF_UNITY`.
+    ///
+    /// [SageMath]: https://www.sagemath.org/
+    const MULTIPLICATIVE_GENERATOR: Self;
+
+    /// An integer `s` satisfying the equation `2^s * t = modulus - 1` with `t` odd.
+    ///
+    /// This is the number of leading zero bits in the little-endian bit representation of
+    /// `modulus - 1`.
+    const S: u32;
+
+    /// The `2^s` root of unity.
+    ///
+    /// It can be calculated by exponentiating `Self::MULTIPLICATIVE_GENERATOR` by `t`,
+    /// where `t = (modulus - 1) >> Self::S`.
+    const ROOT_OF_UNITY: Self;
+
+    /// Inverse of [`Self::ROOT_OF_UNITY`].
+    const ROOT_OF_UNITY_INV: Self;
+
+    /// Generator of the `t-order` multiplicative subgroup.
+    ///
+    /// It can be calculated by exponentiating [`Self::MULTIPLICATIVE_GENERATOR`] by `2^s`,
+    /// where `s` is [`Self::S`].
+    const DELTA: Self;
 
     /// Returns an element chosen uniformly at random using a user-provided RNG.
     fn random(rng: impl RngCore) -> Self;
@@ -318,39 +350,7 @@ pub trait Field:
 }
 
 /// This represents an element of a non-binary prime field.
-pub trait PrimeField: Field {
-    /// A fixed multiplicative generator of `modulus - 1` order. This element must also be
-    /// a quadratic nonresidue.
-    ///
-    /// It can be calculated using [SageMath] as `GF(modulus).primitive_element()`.
-    ///
-    /// Implementations of this trait MUST ensure that this is the generator used to
-    /// derive `Self::ROOT_OF_UNITY`.
-    ///
-    /// [SageMath]: https://www.sagemath.org/
-    const MULTIPLICATIVE_GENERATOR: Self;
-
-    /// An integer `s` satisfying the equation `2^s * t = modulus - 1` with `t` odd.
-    ///
-    /// This is the number of leading zero bits in the little-endian bit representation of
-    /// `modulus - 1`.
-    const S: u32;
-
-    /// The `2^s` root of unity.
-    ///
-    /// It can be calculated by exponentiating `Self::MULTIPLICATIVE_GENERATOR` by `t`,
-    /// where `t = (modulus - 1) >> Self::S`.
-    const ROOT_OF_UNITY: Self;
-
-    /// Inverse of [`Self::ROOT_OF_UNITY`].
-    const ROOT_OF_UNITY_INV: Self;
-
-    /// Generator of the `t-order` multiplicative subgroup.
-    ///
-    /// It can be calculated by exponentiating [`Self::MULTIPLICATIVE_GENERATOR`] by `2^s`,
-    /// where `s` is [`Self::S`].
-    const DELTA: Self;
-}
+pub trait PrimeField: Field {}
 
 /// The subset of prime-order fields such that `(modulus - 1)` is divisible by `N`.
 ///
