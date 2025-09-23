@@ -67,12 +67,66 @@ pub trait Field:
     + for<'a> AddAssign<&'a Self>
     + for<'a> SubAssign<&'a Self>
     + for<'a> MulAssign<&'a Self>
+    + From<u64> 
 {
+    /// The field can be converted back and forth into this binary
+    /// representation.
+    type Repr: Copy + Default + Send + Sync + 'static + AsRef<[u8]> + AsMut<[u8]>;
+    
     /// The zero element of the field, the additive identity.
     const ZERO: Self;
 
     /// The one element of the field, the multiplicative identity.
     const ONE: Self;
+    
+    /// Modulus of the field written as a string for debugging purposes.
+    ///
+    /// The encoding of the modulus is implementation-specific. Generic users of the
+    /// `Field` trait should treat this string as opaque.
+    const MODULUS: &'static str;
+
+    /// How many bits are needed to represent an element of this field.
+    const NUM_BITS: u32;
+
+    /// How many bits of information can be reliably stored in the field element.
+    ///
+    /// This is usually `Self::NUM_BITS - 1`.
+    const CAPACITY: u32;
+
+    /// Inverse of $2$ in the field.
+    const TWO_INV: Self;
+    
+    /// A fixed multiplicative generator of `modulus - 1` order. This element must also be
+    /// a quadratic nonresidue.
+    ///
+    /// It can be calculated using [SageMath] as `GF(modulus).primitive_element()`.
+    ///
+    /// Implementations of this trait MUST ensure that this is the generator used to
+    /// derive `Self::ROOT_OF_UNITY`.
+    ///
+    /// [SageMath]: https://www.sagemath.org/
+    const MULTIPLICATIVE_GENERATOR: Self;
+
+    /// An integer `s` satisfying the equation `2^s * t = modulus - 1` with `t` odd.
+    ///
+    /// This is the number of leading zero bits in the little-endian bit representation of
+    /// `modulus - 1`.
+    const S: u32;
+
+    /// The `2^s` root of unity.
+    ///
+    /// It can be calculated by exponentiating `Self::MULTIPLICATIVE_GENERATOR` by `t`,
+    /// where `t = (modulus - 1) >> Self::S`.
+    const ROOT_OF_UNITY: Self;
+
+    /// Inverse of [`Self::ROOT_OF_UNITY`].
+    const ROOT_OF_UNITY_INV: Self;
+
+    /// Generator of the `t-order` multiplicative subgroup.
+    ///
+    /// It can be calculated by exponentiating [`Self::MULTIPLICATIVE_GENERATOR`] by `2^s`,
+    /// where `s` is [`Self::S`].
+    const DELTA: Self;
 
     /// Returns an element chosen uniformly at random using a user-provided RNG.
     fn random(rng: impl RngCore) -> Self;
@@ -189,15 +243,8 @@ pub trait Field:
 
         res
     }
-}
 
-/// This represents an element of a non-binary prime field.
-pub trait PrimeField: Field + From<u64> {
-    /// The prime field can be converted back and forth into this binary
-    /// representation.
-    type Repr: Copy + Default + Send + Sync + 'static + AsRef<[u8]> + AsMut<[u8]>;
-
-    /// Interpret a string of numbers as a (congruent) prime field element.
+    /// Interpret a string of numbers as a (congruent) field element.
     /// Does not accept unnecessary leading zeroes or a blank string.
     ///
     /// # Security
@@ -262,7 +309,7 @@ pub trait PrimeField: Field + From<u64> {
     }
 
     /// Attempts to convert a byte representation of a field element into an element of
-    /// this prime field, failing if the input is not canonical (is not smaller than the
+    /// this field, failing if the input is not canonical (is not smaller than the
     /// field's modulus).
     ///
     /// The byte representation is interpreted with the same endianness as elements
@@ -270,7 +317,7 @@ pub trait PrimeField: Field + From<u64> {
     fn from_repr(repr: Self::Repr) -> CtOption<Self>;
 
     /// Attempts to convert a byte representation of a field element into an element of
-    /// this prime field, failing if the input is not canonical (is not smaller than the
+    /// this field, failing if the input is not canonical (is not smaller than the
     /// field's modulus).
     ///
     /// The byte representation is interpreted with the same endianness as elements
@@ -284,7 +331,7 @@ pub trait PrimeField: Field + From<u64> {
         Self::from_repr(repr).into()
     }
 
-    /// Converts an element of the prime field into the standard byte representation for
+    /// Converts an element of the field into the standard byte representation for
     /// this field.
     ///
     /// The endianness of the byte representation is implementation-specific. Generic
@@ -300,55 +347,10 @@ pub trait PrimeField: Field + From<u64> {
         !self.is_odd()
     }
 
-    /// Modulus of the field written as a string for debugging purposes.
-    ///
-    /// The encoding of the modulus is implementation-specific. Generic users of the
-    /// `PrimeField` trait should treat this string as opaque.
-    const MODULUS: &'static str;
-
-    /// How many bits are needed to represent an element of this field.
-    const NUM_BITS: u32;
-
-    /// How many bits of information can be reliably stored in the field element.
-    ///
-    /// This is usually `Self::NUM_BITS - 1`.
-    const CAPACITY: u32;
-
-    /// Inverse of $2$ in the field.
-    const TWO_INV: Self;
-
-    /// A fixed multiplicative generator of `modulus - 1` order. This element must also be
-    /// a quadratic nonresidue.
-    ///
-    /// It can be calculated using [SageMath] as `GF(modulus).primitive_element()`.
-    ///
-    /// Implementations of this trait MUST ensure that this is the generator used to
-    /// derive `Self::ROOT_OF_UNITY`.
-    ///
-    /// [SageMath]: https://www.sagemath.org/
-    const MULTIPLICATIVE_GENERATOR: Self;
-
-    /// An integer `s` satisfying the equation `2^s * t = modulus - 1` with `t` odd.
-    ///
-    /// This is the number of leading zero bits in the little-endian bit representation of
-    /// `modulus - 1`.
-    const S: u32;
-
-    /// The `2^s` root of unity.
-    ///
-    /// It can be calculated by exponentiating `Self::MULTIPLICATIVE_GENERATOR` by `t`,
-    /// where `t = (modulus - 1) >> Self::S`.
-    const ROOT_OF_UNITY: Self;
-
-    /// Inverse of [`Self::ROOT_OF_UNITY`].
-    const ROOT_OF_UNITY_INV: Self;
-
-    /// Generator of the `t-order` multiplicative subgroup.
-    ///
-    /// It can be calculated by exponentiating [`Self::MULTIPLICATIVE_GENERATOR`] by `2^s`,
-    /// where `s` is [`Self::S`].
-    const DELTA: Self;
 }
+
+/// This represents an element of a non-binary prime field.
+pub trait PrimeField: Field {}
 
 /// The subset of prime-order fields such that `(modulus - 1)` is divisible by `N`.
 ///
