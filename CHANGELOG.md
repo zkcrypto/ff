@@ -8,8 +8,9 @@ and this library adheres to Rust's notion of
 ## [Unreleased]
 
 ### Changed
-- Some of the methods and constants behind the `PrimeField` trait were moved to
-    the `Field` trait, because they did not require the field to be prime.
+- The methods and constants behind the `PrimeField` trait are moved to
+    the `Field` trait, because they do not require the field to be prime.
+    `PrimeField` is now a marker trait.
 
 ## [0.13.1] - 2025-03-09
 ### Changed
