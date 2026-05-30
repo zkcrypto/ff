@@ -305,6 +305,15 @@ pub trait PrimeField: Field + From<u64> {
     /// encodings of field elements should be treated as opaque.
     fn to_repr(&self) -> Self::Repr;
 
+    /// Converts an element of the prime field into a little-endian byte representation.
+    ///
+    /// The default implementation assumes [`Self::to_repr`] already returns a little-endian
+    /// encoding. Implementors whose [`Self::to_repr`] uses big-endian encoding must override
+    /// this method (e.g. by reversing the bytes).
+    fn to_le_repr(&self) -> Self::Repr {
+        self.to_repr()
+    }
+
     /// Returns true iff this element is odd.
     fn is_odd(&self) -> Choice;
 
