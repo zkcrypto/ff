@@ -37,6 +37,17 @@ use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 #[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
 pub type FieldBits<V> = BitArray<V, Lsb0>;
 
+/// Endianness of a field element's binary representation.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum ReprEndianness {
+    /// Big endian: bytes are ordered most-to-least significant.
+    Big,
+
+    /// Little endian: bytes are ordered least-to-most significant.
+    #[default]
+    Little,
+}
+
 /// This trait represents an element of a field.
 pub trait Field:
     Sized
@@ -211,6 +222,9 @@ pub trait PrimeField: Field + From<u64> {
     /// representation.
     type Repr: Copy + Default + Send + Sync + 'static + AsRef<[u8]> + AsMut<[u8]>;
 
+    /// Endianness of the binary representation `Self::Repr`.
+    const REPR_ENDIANNESS: ReprEndianness = ReprEndianness::Little;
+
     /// Interpret a string of numbers as a (congruent) prime field element.
     /// Does not accept unnecessary leading zeroes or a blank string.
     ///
@@ -301,8 +315,9 @@ pub trait PrimeField: Field + From<u64> {
     /// Converts an element of the prime field into the standard byte representation for
     /// this field.
     ///
-    /// The endianness of the byte representation is implementation-specific. Generic
-    /// encodings of field elements should be treated as opaque.
+    /// The endianness of the byte representation is described by the associated constant
+    /// [`PrimeField::REPR_ENDIANNESS`]. Generic encodings of field elements should honor this
+    /// constant when using this representation in a non-opaque manner.
     fn to_repr(&self) -> Self::Repr;
 
     /// Returns true iff this element is odd.
