@@ -13,20 +13,12 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/RustCrypto/finite-field"
 
 [dependencies]
-bitvec = { version = "1", default-features = false, optional = true }
-byteorder = { version = "1", default-features = false, optional = true }
 rand_core = { version = "0.10", default-features = false }
 subtle = { version = "2.2.1", default-features = false, features = ["i128"] }
 
-[dev-dependencies]
-blake2b_simd = "1"
-getrandom = { version = "0.4", features = ["sys_rng"] }
-
 [features]
-default = ["bits", "std"]
+default = ["alloc"]
 alloc = []
-bits = ["bitvec"]
-std = ["alloc"]
 
 [package.metadata.docs.rs]
 all-features = true

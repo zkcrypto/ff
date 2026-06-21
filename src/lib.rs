@@ -14,24 +14,12 @@ pub use batch::*;
 
 pub mod helpers;
 
-#[cfg(feature = "bits")]
-#[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
-pub use bitvec::view::BitViewSized;
-
-#[cfg(feature = "bits")]
-use bitvec::{array::BitArray, order::Lsb0};
-
 use core::fmt;
 use core::iter::{Product, Sum};
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use rand_core::{Rng, TryRng};
 use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
-
-/// Bit representation of a field element.
-#[cfg(feature = "bits")]
-#[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
-pub type FieldBits<V> = BitArray<V, Lsb0>;
 
 /// This trait represents an element of a field.
 pub trait Field:
@@ -437,18 +425,4 @@ pub trait FromUniformBytes<const N: usize>: PrimeField {
     /// Returns a field element that is congruent to the provided little endian unsigned
     /// byte representation of an integer.
     fn from_uniform_bytes(bytes: &[u8; N]) -> Self;
-}
-
-/// This represents the bits of an element of a prime field.
-#[cfg(feature = "bits")]
-#[cfg_attr(docsrs, doc(cfg(feature = "bits")))]
-pub trait PrimeFieldBits: PrimeField {
-    /// The backing store for a bit representation of a prime field element.
-    type ReprBits: BitViewSized + Send + Sync;
-
-    /// Converts an element of the prime field into a little-endian sequence of bits.
-    fn to_le_bits(&self) -> FieldBits<Self::ReprBits>;
-
-    /// Returns the bits of the field characteristic (the modulus) in little-endian order.
-    fn char_le_bits() -> FieldBits<Self::ReprBits>;
 }
