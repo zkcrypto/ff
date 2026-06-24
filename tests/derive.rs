@@ -159,3 +159,41 @@ fn sqrt() {
     test(Fp::random(&mut UnwrapErr(SysRng)));
     test(Fp::try_random(&mut SysRng).unwrap());
 }
+
+#[test]
+fn sqrt_ratio_test() {
+    use ff::{Field, PrimeField};
+
+    #[derive(PrimeField)]
+    #[PrimeFieldModulus = "357686312646216567629137"]
+    #[PrimeFieldGenerator = "5"]
+    #[PrimeFieldReprEndianness = "little"]
+    struct Fp([u64; 2]);
+
+    fn test(num: Fp, div: Fp) {
+        let (choice, sqrt) = Fp::sqrt_ratio(&num, &div);
+
+        if bool::from(choice) {
+            assert!(div != Fp::ZERO);
+            let div_inv = div.invert().unwrap();
+            let expected = num * div_inv;
+            assert_eq!(sqrt.square(), expected);
+        } else if div != Fp::ZERO {
+            let div_inv = div.invert().unwrap();
+            let expected = Fp::ROOT_OF_UNITY * num * div_inv;
+            assert_eq!(sqrt.square(), expected);
+        } else {
+            assert_eq!(sqrt.square(), Fp::ZERO);
+        }
+    }
+
+    // Easy cases
+    test(Fp::ZERO, Fp::ONE);  // sqrt(0/1) = (true, 0)
+    test(Fp::ONE, Fp::ZERO);   // sqrt(1/0) = (false, 0)
+
+    // Random case
+    use rand::rngs::OsRng;
+    let a = Fp::random(&mut OsRng);
+    let b = Fp::random(&mut OsRng);
+    test(a, b);
+}
