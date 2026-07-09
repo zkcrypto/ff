@@ -18,17 +18,17 @@ documentation = "https://docs.rs/ff/"
 homepage = "https://github.com/zkcrypto/ff"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/zkcrypto/ff"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 bitvec = { version = "1", default-features = false, optional = true }
 byteorder = { version = "1", default-features = false, optional = true }
 ff_derive = { version = "0.12", path = "ff_derive", optional = true }
-rand_core = { version = "0.6", default-features = false }
+rand_core = { version = "0.10.1", default-features = false }
 subtle = { version = ">=2.6.0", default-features = false, features = ["i128"] }
 
 [dev-dependencies]
-rand = "0.8"
+rand = "0.10.2"
 
 [features]
 default = ["bits", "std"]

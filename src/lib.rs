@@ -24,7 +24,7 @@ pub use bitvec::view::BitViewSized;
 use bitvec::{array::BitArray, order::Lsb0};
 use core::fmt;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
-use rand_core::RngCore;
+use rand_core::Rng;
 use subtle::{Choice, ConditionallySelectable, ConstantTimeEq, CtOption};
 
 /// Bit representation of a field element.
@@ -60,7 +60,7 @@ pub trait Field:
     + for<'a> SubAssign<&'a Self>
 {
     /// Returns an element chosen uniformly at random using a user-provided RNG.
-    fn random(rng: impl RngCore) -> Self;
+    fn random(rng: impl Rng) -> Self;
 
     /// Returns the zero element of the field, the additive identity.
     fn zero() -> Self;
