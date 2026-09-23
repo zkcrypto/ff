@@ -38,6 +38,26 @@ mod full_limbs {
     }
 }
 
+mod big_endian_repr {
+    #[derive(PrimeField)]
+    #[PrimeFieldModulus = "65537"]
+    #[PrimeFieldGenerator = "3"]
+    #[PrimeFieldReprEndianness = "big"]
+    struct Fp([u64; 1]);
+
+    #[test]
+    fn round_trips() {
+        use ff::PrimeField;
+
+        let element = Fp::from(0x1234);
+        let repr = element.to_repr();
+
+        assert_eq!(repr.0, [0, 0, 0, 0, 0, 0, 0x12, 0x34]);
+        assert_eq!(Fp::from_repr(repr).unwrap(), element);
+        assert_eq!(Fp::from_repr_vartime(repr), Some(element));
+    }
+}
+
 #[test]
 fn constants() {
     use ff::{Field, PrimeField};
