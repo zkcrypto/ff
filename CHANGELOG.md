@@ -74,8 +74,7 @@ and this library adheres to Rust's notion of
 
 ## [0.12.0] - 2022-05-04
 ### Changed
-
-- MSRV is now 1.56.0.
+- MSRV (Minimum Supported Rust Version) is now 1.56.0.
 - Bumped `bitvec` to 1.0.
 
 ## [0.11.1] - 2022-05-04
@@ -83,7 +82,7 @@ and this library adheres to Rust's notion of
 - `ff_derive` procedural macro can now be invoked within regular macros.
 - Previously, `ff_derive`'s procedural macro would generate implementations of
   `PrimeFieldBits` even when the `bits` crate feature was disabled. `ff_derive`
-  can now be used without a dependency on `bitvec` by disabling feature
+  can now be used without a dependency on `bitvec` by disabling default
   features. The new crate feature `derive_bits` can be used to force the
   generation of `PrimeFieldBits` implementations. This new crate feature will be
   removed once our MSRV is at least 1.60 and we have access to [weak dependency
@@ -93,8 +92,8 @@ and this library adheres to Rust's notion of
 ### Added
 - `subtle::ConstantTimeEq` bound on `ff::Field`
 - `Copy + Send + Sync + 'static` bounds on `ff::PrimeField::Repr`
-- `ff::derive` module behind the `derive` feature flag, containing dependencies for the
-  `PrimeField` derive macro:
+- `ff::derive` module behind the `derive` feature flag, containing dependencies
+  for the `PrimeField` derive macro:
   - Re-exports of required crates.
   - `adc, mac, sbb` constant-time const helper functions.
 - `ff::Field::is_zero_vartime`
@@ -103,7 +102,7 @@ and this library adheres to Rust's notion of
 ### Changed
 - `ff::Field::is_zero` now returns `subtle::Choice`.
 - `ff::PrimeField::{is_odd, is_even}` now return `subtle::Choice`.
-- `ff::PrimeField::from_repr` now return `subtle::CtOption<Self>`.
+- `ff::PrimeField::from_repr` now returns `subtle::CtOption<Self>`.
 - `ff::PrimeField::from_str` has been renamed to `PrimeField::from_str_vartime`.
 
 ### Removed
@@ -111,11 +110,11 @@ and this library adheres to Rust's notion of
 
 ## [0.10.1] - 2021-08-11
 ### Added
-- `ff::BatchInvert` extension trait, implemented for iterators over mutable field elements
-  which allows those field elements to be inverted in a batch. This trait is behind the
-  new `alloc` feature flag.
-- `ff::BatchInverter` struct, which provides methods for non-allocating batch inversion of
-  field elements contained within slices.
+- `ff::BatchInvert` extension trait, implemented for iterators over mutable
+  field elements which allows those field elements to be inverted in a batch.
+  This trait is behind the new `alloc` feature flag.
+- `ff::BatchInverter` struct, which provides methods for non-allocating batch
+  inversion of field elements contained within slices.
 
 ## [0.10.0] - 2021-06-01
 ### Added
@@ -154,7 +153,7 @@ and this library adheres to Rust's notion of
 - `ff::PrimeField::{ReprBits, char_le_bits, to_le_bits}`, and a public
   dependency on `bitvec 0.18`.
 - `ff::Field::cube` method with provided implementation.
-- `Send + Sync` bounds on `ff::PrimeField::ReprBits`
+- `Send + Sync` bounds on `ff::PrimeField::ReprBits`.
 
 ### Changed
 - MSRV is now 1.44.0.
@@ -165,5 +164,5 @@ and this library adheres to Rust's notion of
 ### Removed
 - `fmt::Display` bound on `ff::Field`.
 - `ff::PrimeField::char` (replaced by `ff::PrimeField::char_le_bits`).
-- `ff::{BitIterator, Endianness, PrimeField::ReprEndianness` (replaced by
+- `ff::{BitIterator, Endianness, PrimeField::ReprEndianness}` (replaced by
   `ff::PrimeField::to_le_bits`).
